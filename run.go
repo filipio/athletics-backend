@@ -34,7 +34,6 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("POST /api/v1/humans", controllers.CreateOrUpdate[models.Human](db))
 	mux.Handle("PUT /api/v1/humans/{id}", controllers.CreateOrUpdate[models.Human](db))
 	mux.Handle("DELETE /api/v1/humans/{id}", controllers.Delete[models.Human](db))
-
 }
 
 func Run(ctx context.Context, envPath string) error {
@@ -55,31 +54,6 @@ func Run(ctx context.Context, envPath string) error {
 	db.AutoMigrate(&models.Pokemon{}, &models.Other{}, &models.Human{})
 	log.Print("migrated database")
 
-	pokemon := models.Pokemon{
-		PokemonName: "Pikachu",
-		Age:         5,
-		Email:       "abc@gmail.com",
-		Attack:      "Ember",
-	}
-
-	log.Println(pokemon)
-
-	db.Save(&pokemon)
-	db.Delete(&pokemon)
-
-	pokemon.Age = 6
-	pokemon.Email = "qwe@gmail.com"
-	db.Save(&pokemon)
-	db.Save(&pokemon)
-	db.Save(&pokemon)
-
-	// print id of the created pokemon
-	log.Printf("created pokemon with id: %d\n", pokemon.ID)
-
-	// var fetched models.Pokemon
-	// db.First(&fetched, 1)
-	// log.Printf("fetched pokemon: %+v\n", fetched)
-
 	port := os.Getenv("PORT")
 	addr := fmt.Sprintf(":%s", port)
 	handler := newServerHandler(db)
@@ -95,6 +69,7 @@ func Run(ctx context.Context, envPath string) error {
 		}
 	}()
 
+	// belowe is used for graceful shutdown
 	var wg sync.WaitGroup
 	wg.Add(1)
 

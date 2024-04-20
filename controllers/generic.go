@@ -39,11 +39,7 @@ func Get[T any](db *gorm.DB) http.Handler {
 			}
 
 			if result.RowsAffected == 0 {
-				response := struct {
-					Message string `json:"message"`
-				}{Message: "record not found"}
-
-				if err := utils.Encode(w, r, http.StatusBadRequest, response); err != nil {
+				if err := utils.Encode(w, r, http.StatusBadRequest, utils.RecordNotFoundResponse); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -102,11 +98,7 @@ func Delete[T any](db *gorm.DB) http.Handler {
 			}
 
 			if result.RowsAffected == 0 {
-				response := struct {
-					Message string `json:"message"`
-				}{Message: "record not found"}
-
-				if err := utils.Encode(w, r, http.StatusBadRequest, response); err != nil {
+				if err := utils.Encode(w, r, http.StatusBadRequest, utils.RecordNotFoundResponse); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}

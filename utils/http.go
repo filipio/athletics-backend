@@ -13,7 +13,7 @@ import (
 	"github.com/iancoleman/strcase"
 )
 
-type ValidationResponse struct {
+type ErrorsResponse struct {
 	Errors map[string]interface{} `json:"errors"`
 }
 
@@ -31,15 +31,31 @@ func IntPathValue(r *http.Request, key string) int {
 	return result
 }
 
-func Decode[T any](r *http.Request) (T, *ValidationResponse, error) {
+func Decode[T any](r *http.Request) (T, *ErrorsResponse, error) {
 	var v T
-	// if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-	// 	return v, nil, fmt.Errorf("decode json: %w", err)
-	// }
 
-	bytes, err := io.ReadAll(r.Body)
+	bytes, err := decodeBytes(r)
 	if err != nil {
-		return v, nil, fmt.Errorf("read bytes body: %w", err)
+		return v, nil, err
+	}
+
+	if err := json.Unmarshal(bytes, &v); err != nil {
+		return v, nil, fmt.Errorf("decode json: %w", err)
+	}
+
+	var validate *validator.Validate = validator.New(validator.WithRequiredStructEnabled())
+
+	if err := validate.Struct(v); err != nil {
+		return v, validationErrorResponse(err), nil
+	}
+
+	return v, nil, nil
+}
+
+func decodeBytes(r *http.Request) ([]byte, error) {
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read bytes body: %w", err)
 	}
 
 	var toAddBytes []byte
@@ -51,101 +67,66 @@ func Decode[T any](r *http.Request) (T, *ValidationResponse, error) {
 	var finalBytes []byte
 
 	if len(toAddBytes) > 0 {
-		bytes := bytes[:len(bytes)-1]
+		bytes := bodyBytes[:len(bodyBytes)-1]
 		finalBytes = append(bytes, toAddBytes...)
 	} else {
-		finalBytes = bytes
+		finalBytes = bodyBytes
 	}
 
-	if err := json.Unmarshal(finalBytes, &v); err != nil {
-		return v, nil, fmt.Errorf("decode json: %w", err)
-	}
+	return finalBytes, nil
+}
 
-	// var objmap1 map[string]*json.RawMessage
+func validationErrorResponse(err error) *ErrorsResponse {
+	response := ErrorsResponse{}
+	response.Errors = make(map[string]interface{})
 
-	// if err := json.NewDecoder(r.Body).Decode(&objmap1); err != nil {
-	// 	return v, nil, fmt.Errorf("decode json: %w", err)
-	// }
-
-	// var objmap2 map[string]*json.RawMessage = make(map[string]*json.RawMessage)
-
-	// if structId := r.PathValue("id"); structId != "" {
-	// 	idBytes := []byte(structId)
-
-	// 	objmap2["id"] = (*json.RawMessage)(&idBytes)
-	// }
-
-	// for key, value := range objmap2 {
-	// 	objmap1[key] = value
-	// }
-
-	// bytes, err := json.Marshal(objmap1)
-	// if err != nil {
-	// 	return v, nil, fmt.Errorf("marshal json: %w", err)
-	// }
-
-	// if err := json.Unmarshal(bytes, &v); err != nil {
-	// 	return v, nil, fmt.Errorf("decode json: %w", err)
-	// }
-
-	fmt.Println("v", v)
-
-	var validate *validator.Validate = validator.New(validator.WithRequiredStructEnabled())
-
-	if err := validate.Struct(v); err != nil {
-		response := ValidationResponse{}
-		response.Errors = make(map[string]interface{})
-
-		for _, err := range err.(validator.ValidationErrors) {
-			namespace := err.Namespace()
-			namespaceParts := strings.Split(namespace, ".")
-			nestedElements := namespaceParts[1:]
-			snakeCased := make([]string, len(nestedElements))
-			for i, element := range nestedElements {
-				snakeCased[i] = strcase.ToSnake(element)
-			}
-
-			var errorMessage string
-
-			switch err.ActualTag() {
-			case "required":
-				errorMessage = "must be present"
-			case "email":
-				errorMessage = "must be a valid email address"
-			case "oneof":
-				errorMessage = "must be one of the following values: " + err.Param()
-			case "lte":
-				errorMessage = "must be less than or equal to " + err.Param()
-			case "gte":
-				errorMessage = "must be greater than or equal to " + err.Param()
-			default:
-				errorMessage = "unknown error"
-			}
-
-			errorType := err.ActualTag()
-
-			currentErrorMap := response.Errors
-			for i, element := range snakeCased {
-				if i == len(snakeCased)-1 {
-					currentErrorMap[element] = ValidationResponseItem{
-						Type:    errorType,
-						Message: errorMessage,
-					}
-
-				} else {
-					if _, ok := currentErrorMap[element]; !ok {
-						currentErrorMap[element] = make(map[string]interface{})
-					}
-					currentErrorMap = currentErrorMap[element].(map[string]interface{})
-				}
-			}
-			log.Print("validation error: ", err.Error())
+	for _, err := range err.(validator.ValidationErrors) {
+		namespace := err.Namespace()
+		namespaceParts := strings.Split(namespace, ".")
+		nestedElements := namespaceParts[1:]
+		snakeCased := make([]string, len(nestedElements))
+		for i, element := range nestedElements {
+			snakeCased[i] = strcase.ToSnake(element)
 		}
 
-		return v, &response, nil
+		var errorMessage string
+
+		switch err.ActualTag() {
+		case "required":
+			errorMessage = "must be present"
+		case "email":
+			errorMessage = "must be a valid email address"
+		case "oneof":
+			errorMessage = "must be one of the following values: " + err.Param()
+		case "lte":
+			errorMessage = "must be less than or equal to " + err.Param()
+		case "gte":
+			errorMessage = "must be greater than or equal to " + err.Param()
+		default:
+			errorMessage = "unknown error"
+		}
+
+		errorType := err.ActualTag()
+
+		currentErrorMap := response.Errors
+		for i, element := range snakeCased {
+			if i == len(snakeCased)-1 {
+				currentErrorMap[element] = ValidationResponseItem{
+					Type:    errorType,
+					Message: errorMessage,
+				}
+
+			} else {
+				if _, ok := currentErrorMap[element]; !ok {
+					currentErrorMap[element] = make(map[string]interface{})
+				}
+				currentErrorMap = currentErrorMap[element].(map[string]interface{})
+			}
+		}
+		log.Print("validation error: ", err.Error())
 	}
 
-	return v, nil, nil
+	return &response
 }
 
 func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) error {

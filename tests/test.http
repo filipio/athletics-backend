@@ -25,7 +25,8 @@ content-type: application/json
 
 {
     "height": 2.12,
-    "name": "Ben"
+    "name": "Ash Ketchum",
+    "pokemon_name": "Pikachu"
 }
 
 ### 
