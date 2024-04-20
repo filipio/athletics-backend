@@ -58,6 +58,7 @@ func decodeBytes(r *http.Request) ([]byte, error) {
 		return nil, fmt.Errorf("read bytes body: %w", err)
 	}
 
+	// below is done to parse id from path and add it to body (hacky, but thanks to that generics can work)
 	var toAddBytes []byte
 
 	if structId := r.PathValue("id"); structId != "" {
