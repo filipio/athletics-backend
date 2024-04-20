@@ -9,9 +9,7 @@ import (
 func TestHealthcheck(t *testing.T) {
 	fmt.Println("TestHealthcheck")
 	// execute real http request to the server
-	// and check the response
-
-	code, err := http.Get("http://localhost:8080/healthz")
+	code, err := Get("/healthz")
 
 	if err != nil {
 		t.Errorf("Error making request: %s", err.Error())

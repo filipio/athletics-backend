@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 # Accept the Go version for the image to be set as a build argument.
 # Default to Go 1.22
 ARG GO_VERSION=1.22.1
@@ -28,7 +26,7 @@ COPY ./ ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-s -w' \
     -installsuffix 'static' \
-    -o /app_main ./
+    -o /app_main ./cmd
 
 # Final stage: the running container.
 FROM scratch AS final

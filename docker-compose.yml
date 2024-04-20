@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -11,14 +9,13 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DB_USER=${DB_USER}
+      - DB_USER=${DB_USER} # this ones are loaded from .env file
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_PORT=${DB_PORT}
       - DB_HOST=db
-      - GIN_MODE=debug
       - PORT=8080
-      - APP_ENV=prod # thanks to that .env (not present in docker image) is not loaded
+      - APP_ENV=prod # signalized not loading of .env file in app code
 
   db:
     image: postgres:16
