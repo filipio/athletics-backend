@@ -3,23 +3,30 @@ package config
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
+var db *gorm.DB
+var once sync.Once
+
 func DatabaseConnection() *gorm.DB {
 
-	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN:                  dsn(),
-		PreferSimpleProtocol: true, // disables implicit prepared statement usage
-	}), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+	once.Do(func() {
+		dbInstance, err := gorm.Open(postgres.New(postgres.Config{
+			DSN:                  dsn(),
+			PreferSimpleProtocol: true, // disables implicit prepared statement usage
+		}), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		})
+		if err != nil {
+			panic("failed to connect database")
+		}
+		db = dbInstance
 	})
-	if err != nil {
-		panic("failed to connect database")
-	}
 
 	return db
 }
@@ -31,7 +38,7 @@ func dsn() string {
 	dbname := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
-	result := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	result := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
 		host, user, password, dbname, port)
 
 	return result

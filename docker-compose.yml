@@ -9,7 +9,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DB_USER=${DB_USER} # this ones are loaded from .env file
+      - DB_USER=${DB_USER} # these ones are loaded from .env file
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_PORT=${DB_PORT}
@@ -27,6 +27,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+      - ./docker-init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 1s

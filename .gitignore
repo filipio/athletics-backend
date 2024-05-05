@@ -22,3 +22,6 @@ go.work
 
 # env
 .env
+
+# local tests
+test.http

@@ -10,31 +10,19 @@ import (
 	"time"
 
 	athleticsbackend "github.com/filipio/athletics-backend"
+	"github.com/filipio/athletics-backend/config"
+	"gorm.io/gorm"
 )
 
-var host string // only for reading outside of this file
+// following values should not be changed outside of this file - they are read-only
+var host string
+var dbInstance *gorm.DB
 var ctx = context.Background()
 
-const envPath = "../../.env"
+const envPath = "../../.env.test"
 const hostFormula = "http://localhost:%s"
 
-func Get(path string) (*http.Response, error) {
-	url := host + path
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodGet,
-		url,
-		nil,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	return http.DefaultClient.Do(req)
-}
-
 func TestMain(m *testing.M) {
-	log.Print("test main is running")
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -49,11 +37,8 @@ func TestMain(m *testing.M) {
 		log.Fatalf("failed to wait for server to be ready: %v\n", err)
 	}
 
-	// Run the tests
-	log.Print("Host is ", host)
+	dbInstance = config.DatabaseConnection()
 	code := m.Run()
-
-	// Exit with the code returned from m.Run
 	os.Exit(code)
 }
 
