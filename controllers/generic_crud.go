@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -60,6 +61,9 @@ func Create[T models.WithID](db *gorm.DB) http.Handler {
 		func(w http.ResponseWriter, r *http.Request) {
 			record, validationError, err := utils.Decode[T](r)
 
+			user, _ := r.Context().Value(utils.UserContextKey).(models.User)
+			fmt.Println(user.Email)
+
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -74,7 +78,6 @@ func Create[T models.WithID](db *gorm.DB) http.Handler {
 			}
 
 			dbResult := db.Create(&record)
-			log.Print(record.GetID())
 
 			if dbResult.Error != nil {
 				http.Error(w, dbResult.Error.Error(), http.StatusInternalServerError)

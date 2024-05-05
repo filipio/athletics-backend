@@ -63,6 +63,22 @@ func Decode[T any](r *http.Request) (T, *ErrorsResponse, error) {
 	return v, nil, nil
 }
 
+func BadRequest(w http.ResponseWriter, r *http.Request, message string) error {
+	return EncodeError(w, r, http.StatusBadRequest, AnyMap{"bad_request": message})
+}
+
+func Unauthorized(w http.ResponseWriter, r *http.Request, message string) error {
+	return EncodeError(w, r, http.StatusUnauthorized, AnyMap{"unauthorized": message})
+}
+
+func Forbidden(w http.ResponseWriter, r *http.Request, message string) error {
+	return EncodeError(w, r, http.StatusForbidden, AnyMap{"forbidden": message})
+}
+
+func EncodeError(w http.ResponseWriter, r *http.Request, status int, errorMap AnyMap) error {
+	return Encode(w, r, status, ErrorsResponse{Errors: errorMap})
+}
+
 func validationErrorResponse(err error) *ErrorsResponse {
 	response := ErrorsResponse{}
 	response.Errors = make(AnyMap)

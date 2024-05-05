@@ -12,7 +12,9 @@ import (
 
 	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/controllers"
+	m "github.com/filipio/athletics-backend/middlewares"
 	"github.com/filipio/athletics-backend/models"
+	"github.com/filipio/athletics-backend/utils"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
@@ -23,11 +25,31 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 
-	mux.Handle("GET /api/v1/pokemons", controllers.GetAll[models.Pokemon](db))
+	mux.Handle("GET /api/v1/pokemons", m.UserOnly(controllers.GetAll[models.Pokemon](db), db))
 	mux.Handle("GET /api/v1/pokemons/{id}", controllers.Get[models.Pokemon](db))
-	mux.Handle("POST /api/v1/pokemons", controllers.Create[models.Pokemon](db))
+	mux.Handle("POST /api/v1/pokemons", m.AdminOnly(controllers.Create[models.Pokemon](db), db))
 	mux.Handle("PUT /api/v1/pokemons/{id}", controllers.Update[models.Pokemon](db))
 	mux.Handle("DELETE /api/v1/pokemons/{id}", controllers.Delete[models.Pokemon](db))
+
+	mux.Handle("POST /api/v1/register", controllers.Register(db))
+	mux.Handle("POST /api/v1/login", controllers.Login(db))
+}
+
+func executeMigrations(db *gorm.DB) {
+	db.AutoMigrate(&models.Pokemon{}, &models.User{}, &models.Role{})
+}
+
+func seed(db *gorm.DB) {
+	if db.Where("name = ?", utils.UserRole).First(&models.Role{}).RowsAffected > 0 {
+		return
+	}
+
+	db.Create(&models.Role{Name: utils.UserRole})
+
+	if db.Where("name = ?", utils.AdminRole).First(&models.Role{}).RowsAffected > 0 {
+		return
+	}
+	db.Create(&models.Role{Name: utils.AdminRole})
 }
 
 func Run(ctx context.Context, envPath string) error {
@@ -46,8 +68,11 @@ func Run(ctx context.Context, envPath string) error {
 	db := config.DatabaseConnection()
 	log.Print("established connection to database")
 
-	db.AutoMigrate(&models.Pokemon{})
+	executeMigrations(db)
 	log.Print("migrated database")
+
+	seed(db)
+	log.Print("seeded database")
 
 	port := os.Getenv("PORT")
 	addr := fmt.Sprintf(":%s", port)
@@ -89,18 +114,7 @@ func newServerHandler(db *gorm.DB) http.Handler {
 	addRoutes(mux, db)
 
 	var handler http.Handler = mux
-	handler = loggingMiddleware(handler)
+	handler = m.LoggingMiddleware(handler)
 
 	return handler
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		startTime := time.Now()
-
-		next.ServeHTTP(w, r)
-
-		duration := time.Since(startTime)
-		log.Printf("%s %s %s\n", r.Method, r.RequestURI, duration)
-	})
 }
