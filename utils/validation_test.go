@@ -92,7 +92,7 @@ func TestValidationErrorResponse(t *testing.T) {
 		},
 	}
 
-	response := validationErrorResponse(err)
+	response := &ErrorsResponse{ValidationErrorMap(err)}
 
 	if !cmp.Equal(response, expectedResponse) {
 		t.Errorf("Response does not match expected response: %s", cmp.Diff(response, expectedResponse))

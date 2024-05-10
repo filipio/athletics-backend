@@ -25,14 +25,20 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 
-	mux.Handle("GET /api/v1/pokemons", m.UserOnly(controllers.GetAll[models.Pokemon](db), db))
-	mux.Handle("GET /api/v1/pokemons/{id}", controllers.Get[models.Pokemon](db))
-	mux.Handle("POST /api/v1/pokemons", m.AdminOnly(controllers.Create[models.Pokemon](db), db))
-	mux.Handle("PUT /api/v1/pokemons/{id}", controllers.Update[models.Pokemon](db))
-	mux.Handle("DELETE /api/v1/pokemons/{id}", controllers.Delete[models.Pokemon](db))
+	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.AdminOnly(controllers.GetAll[models.Pokemon](db), db)))
+	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get[models.Pokemon](db)))
+	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(controllers.Create[models.Pokemon](db)))
+	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon](db)))
+	mux.Handle("DELETE /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Delete[models.Pokemon](db)))
 
-	mux.Handle("POST /api/v1/register", controllers.Register(db))
-	mux.Handle("POST /api/v1/login", controllers.Login(db))
+	mux.Handle("POST /api/v1/register", m.ErrorsMiddleware(controllers.Register(db)))
+	mux.Handle("POST /api/v1/login", m.ErrorsMiddleware(controllers.Login(db)))
+
+	mux.Handle("GET /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.GetAll[models.User](db), db)))
+	mux.Handle("GET /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Get[models.User](db), db)))
+	mux.Handle("POST /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.Create[models.User](db), db)))
+	mux.Handle("PUT /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Update[models.User](db), db)))
+	mux.Handle("DELETE /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Delete[models.User](db), db)))
 }
 
 func executeMigrations(db *gorm.DB) {
@@ -40,16 +46,31 @@ func executeMigrations(db *gorm.DB) {
 }
 
 func seed(db *gorm.DB) {
-	if db.Where("name = ?", utils.UserRole).First(&models.Role{}).RowsAffected > 0 {
-		return
+	adminRole := models.Role{Name: utils.AdminRole}
+	userRole := models.Role{Name: utils.UserRole}
+
+	if db.Where("name = ?", utils.AdminRole).First(&adminRole).RowsAffected == 0 {
+		db.Create(&adminRole)
 	}
 
-	db.Create(&models.Role{Name: utils.UserRole})
-
-	if db.Where("name = ?", utils.AdminRole).First(&models.Role{}).RowsAffected > 0 {
-		return
+	if db.Where("name = ?", utils.UserRole).First(&userRole).RowsAffected == 0 {
+		db.Create(&userRole)
 	}
-	db.Create(&models.Role{Name: utils.AdminRole})
+
+	adminEmail := os.Getenv("ADMIN_EMAIL")
+	adminPassword := os.Getenv("ADMIN_PASSWORD")
+
+	if adminEmail != "" && adminPassword != "" {
+		adminUser := models.User{
+			Email:    adminEmail,
+			Password: adminPassword,
+		}
+
+		if db.Where("email = ?", adminEmail).First(&adminUser).RowsAffected == 0 {
+			db.Create(&adminUser)
+			db.Model(&adminUser).Association("Roles").Append(&adminRole)
+		}
+	}
 }
 
 func Run(ctx context.Context, envPath string) error {
@@ -118,3 +139,5 @@ func newServerHandler(db *gorm.DB) http.Handler {
 
 	return handler
 }
+
+// TODO: consider adding new server mux so error middleware can be extracted as a common one for all

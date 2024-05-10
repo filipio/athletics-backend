@@ -7,6 +7,7 @@ import (
 
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
+	"github.com/filipio/athletics-backend/utils/app_errors"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -14,36 +15,15 @@ import (
 
 const jwtTokenExpiration = time.Hour * 24 * 30
 
-func Register(db *gorm.DB) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			user, validationError, err := utils.Decode[models.User](r)
+func Register(db *gorm.DB) utils.HandlerWithError {
+	return utils.HandlerWithError(
+		func(w http.ResponseWriter, r *http.Request) error {
+			user, err := utils.Decode[models.User](r)
 
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
+				return err
 			}
 
-			if validationError != nil {
-				if err := utils.Encode(w, r, http.StatusBadRequest, validationError); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				return
-			}
-
-			// Hash the password
-			hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
-
-			if err != nil {
-				if err := utils.Encode(w, r, http.StatusBadRequest, utils.HashError); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				return
-			}
-
-			user.Password = string(hash)
 			var role models.Role
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
@@ -65,61 +45,39 @@ func Register(db *gorm.DB) http.Handler {
 
 				return nil
 			}); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				return err
 			}
 
-			if err := utils.Encode(w, r, http.StatusOK, utils.AnyMap{}); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
+			utils.Encode(w, r, http.StatusOK, utils.AnyMap{})
 
+			return nil
 		})
 }
 
-func Login(db *gorm.DB) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			bodyUser, validationError, decodeErr := utils.Decode[models.User](r)
+func Login(db *gorm.DB) utils.HandlerWithError {
+	return utils.HandlerWithError(
+		func(w http.ResponseWriter, r *http.Request) error {
+			bodyUser, decodeErr := utils.Decode[models.User](r)
 
 			if decodeErr != nil {
-				http.Error(w, decodeErr.Error(), http.StatusBadRequest)
-				return
-			}
-
-			if validationError != nil {
-				if err := utils.Encode(w, r, http.StatusBadRequest, validationError); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				return
+				return decodeErr
 			}
 
 			var user models.User
-
 			db.First(&user, "email = ?", bodyUser.Email)
 
 			if user.GetID() == 0 {
-				if err := utils.Encode(w, r, http.StatusUnauthorized, utils.AuthError); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				return
+				return app_errors.LoginError{}
 			}
 
 			if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(bodyUser.Password)); err != nil {
-				if err := utils.Encode(w, r, http.StatusUnauthorized, utils.AuthError); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				return
+				return app_errors.LoginError{}
 			}
 
 			var roles []models.Role
 
 			if err := db.Model(&user).Association("Roles").Find(&roles); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				return err
 			}
 
 			var roleNames []string = make([]string, len(roles))
@@ -127,7 +85,6 @@ func Login(db *gorm.DB) http.Handler {
 				roleNames[i] = role.Name
 			}
 
-			// Generate a JWT token
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 				"sub":   user.ID,
 				"exp":   time.Now().Add(jwtTokenExpiration).Unix(),
@@ -137,8 +94,7 @@ func Login(db *gorm.DB) http.Handler {
 			tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SIGNING_SECRET")))
 
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				return err
 			}
 
 			responseBody := utils.AnyMap{
@@ -146,9 +102,10 @@ func Login(db *gorm.DB) http.Handler {
 			}
 
 			if err := utils.Encode(w, r, http.StatusOK, responseBody); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				return err
 			}
+
+			return nil
 
 		})
 }
