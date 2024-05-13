@@ -27,7 +27,7 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 
 	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.AdminOnly(controllers.GetAll[models.Pokemon](db), db)))
 	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get[models.Pokemon](db)))
-	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(controllers.Create[models.Pokemon](db)))
+	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(m.AdminOnly(controllers.Create[models.Pokemon](db), db)))
 	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon](db)))
 	mux.Handle("DELETE /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Delete[models.Pokemon](db)))
 

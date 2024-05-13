@@ -17,7 +17,8 @@ func (f HandlerWithError) ServeHTTP(w http.ResponseWriter, r *http.Request) erro
 }
 
 type ErrorsResponse struct {
-	Errors AnyMap `json:"errors"`
+	ErrorType string `json:"error_type"`
+	Details   any    `json:"details"` // should be of type: string, utils.AnyMap
 }
 
 func IntPathValue(r *http.Request, key string) int {
@@ -53,8 +54,4 @@ func Decode[T any](r *http.Request) (T, error) {
 	}
 
 	return record, nil
-}
-
-func EncodeError(w http.ResponseWriter, r *http.Request, httpStatus int, errorMap AnyMap) error {
-	return Encode(w, r, httpStatus, ErrorsResponse{Errors: errorMap})
 }

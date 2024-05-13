@@ -45,7 +45,7 @@ func TestBuildErrorPath(t *testing.T) {
 	}
 }
 
-func TestValidationErrorResponse(t *testing.T) {
+func TestValidationDetails(t *testing.T) {
 	err1 := FieldErrorMock{
 		_Tag:       "required",
 		_Namespace: "utils.http.buildErrorPath",
@@ -73,29 +73,27 @@ func TestValidationErrorResponse(t *testing.T) {
 		err2,
 	}
 
-	expectedResponse := &ErrorsResponse{
-		Errors: AnyMap{
-			"http": AnyMap{
-				"build_error_path": ValidationResponseItem{
-					Type:    "required",
-					Message: "This field is required",
-				},
+	expected := []ValidationResponseItem{
+		{
+			ErrorsResponse: ErrorsResponse{
+				ErrorType: "required",
+				Details:   "This field is required",
 			},
-			"very_deep": AnyMap{
-				"error": AnyMap{
-					"path": ValidationResponseItem{
-						Type:    "email",
-						Message: "This field must be an email",
-					},
-				},
+			Path: []string{"http", "build_error_path"},
+		},
+		{
+			ErrorsResponse: ErrorsResponse{
+				ErrorType: "email",
+				Details:   "This field must be an email",
 			},
+			Path: []string{"very_deep", "error", "path"},
 		},
 	}
 
-	response := &ErrorsResponse{ValidationErrorMap(err)}
+	actual := ValidationErrorDetails(err)
 
-	if !cmp.Equal(response, expectedResponse) {
-		t.Errorf("Response does not match expected response: %s", cmp.Diff(response, expectedResponse))
+	if !cmp.Equal(actual, expected) {
+		t.Errorf("Response does not match expected response: %s", cmp.Diff(actual, expected))
 	}
 }
 

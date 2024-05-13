@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"strings"
@@ -32,14 +33,14 @@ func authMiddleware(next utils.HandlerWithError, allowedRole string, db *gorm.DB
 
 		token, parsingError := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, app_errors.InvalidJwtSigningError{}
+				return nil, errors.New("unexpected jwt signing method")
 			}
 
 			return []byte(os.Getenv("JWT_SIGNING_SECRET")), nil
 		})
 
 		if parsingError != nil {
-			return parsingError
+			return app_errors.JwtTokenParsingError{AppError: app_errors.AppError{parsingError.Error()}}
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {

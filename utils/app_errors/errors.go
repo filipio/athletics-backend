@@ -44,6 +44,6 @@ type InvalidJwtClaimsError struct {
 	AppError
 }
 
-type InvalidJwtSigningError struct {
+type JwtTokenParsingError struct {
 	AppError
 }
