@@ -9,6 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// let's say we want to fetch all of the records where age > 20
+// with this implementation it is not possible, query is always the same
+// abstraction for executing query based on the query params is needed
+
 func GetAll[T any](db *gorm.DB) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
@@ -55,9 +59,6 @@ func Get[T any](db *gorm.DB) utils.HandlerWithError {
 func Create[T models.WithID](db *gorm.DB) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			// user, _ := r.Context().Value(utils.UserContextKey).(models.User)
-			// fmt.Println(user.Email)
-
 			record, err := utils.Decode[T](r)
 
 			if err != nil {

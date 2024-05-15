@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -23,7 +24,7 @@ func UserOnly(next utils.HandlerWithError, db *gorm.DB) utils.HandlerWithError {
 	return authMiddleware(next, utils.UserRole, db)
 }
 
-func authMiddleware(next utils.HandlerWithError, allowedRole string, db *gorm.DB) utils.HandlerWithError {
+func authMiddleware(next utils.HandlerWithError, requiredRole string, db *gorm.DB) utils.HandlerWithError {
 	return utils.HandlerWithError(func(w http.ResponseWriter, r *http.Request) error {
 		tokenString, extractionError := extractToken(r)
 
@@ -31,49 +32,32 @@ func authMiddleware(next utils.HandlerWithError, allowedRole string, db *gorm.DB
 			return extractionError
 		}
 
-		token, parsingError := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, errors.New("unexpected jwt signing method")
-			}
-
-			return []byte(os.Getenv("JWT_SIGNING_SECRET")), nil
-		})
+		token, parsingError := parseToken(tokenString)
 
 		if parsingError != nil {
-			return app_errors.JwtTokenParsingError{AppError: app_errors.AppError{parsingError.Error()}}
+			return app_errors.JwtTokenParsingError{AppError: app_errors.AppError{Message: parsingError.Error()}}
 		}
 
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			if float64(time.Now().Unix()) > claims["exp"].(float64) {
-				return app_errors.JwtTokenExpiredError{}
-			}
+		claims, ok := token.Claims.(jwt.MapClaims)
 
-			userRoles := claims["roles"].([]interface{})
-
-			roleMatch := false
-			for _, role := range userRoles {
-				stringRole := role.(string)
-				roleMatch = (stringRole == allowedRole)
-			}
-
-			if roleMatch {
-				userID := claims["sub"]
-
-				var user models.User
-				db.First(&user, userID)
-				if user.ID == 0 {
-					return app_errors.UserNotFoundError{}
-				}
-
-				ctx := context.WithValue(r.Context(), utils.UserContextKey, user)
-				return next.ServeHTTP(w, r.WithContext(ctx))
-			} else {
-				return app_errors.ActionForbiddenError{}
-			}
-
-		} else {
+		if !ok || !token.Valid {
 			return app_errors.InvalidJwtClaimsError{}
 		}
+
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			return app_errors.JwtTokenExpiredError{}
+		}
+
+		if !requiredRoleFound(claims, requiredRole) {
+			return app_errors.ActionForbiddenError{}
+		}
+
+		clientContext, err := buildClientContext(r, claims, db)
+		if err != nil {
+			return err
+		}
+
+		return next.ServeHTTP(w, r.WithContext(clientContext))
 	})
 }
 
@@ -89,4 +73,43 @@ func extractToken(r *http.Request) (string, error) {
 	}
 
 	return parts[1], nil
+}
+
+func parseToken(tokenString string) (*jwt.Token, error) {
+	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected jwt signing method")
+		}
+
+		return []byte(os.Getenv("JWT_SIGNING_SECRET")), nil
+	})
+}
+
+func requiredRoleFound(claims jwt.MapClaims, requiredRole string) bool {
+	userRoles := claims["roles"].([]interface{})
+
+	if slices.Contains(userRoles, utils.AdminRole) {
+		return true
+	}
+
+	roleFound := false
+
+	for _, role := range userRoles {
+		actualRole := role.(string)
+		roleFound = (actualRole == requiredRole)
+	}
+
+	return roleFound
+}
+
+func buildClientContext(r *http.Request, claims jwt.MapClaims, db *gorm.DB) (context.Context, error) {
+	userID := claims["sub"]
+
+	var user models.User
+	db.First(&user, userID)
+	if user.ID == 0 {
+		return nil, app_errors.UserNotFoundError{}
+	}
+
+	return context.WithValue(r.Context(), utils.UserContextKey, user), nil
 }

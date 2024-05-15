@@ -1,0 +1,75 @@
+@base_url = http://localhost:8080
+@resource_name = users
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc1MDcyMjksInJvbGVzIjpbInVzZXIiXSwic3ViIjoyNn0.epX3ddsee3JZ817NGzaywJSeo7jzWj9Q-s0FsBwRUaM
+
+###
+
+GET {{base_url}}/healthz HTTP/1.1
+
+###
+
+GET {{base_url}}/readyz HTTP/1.1
+
+### 
+
+GET {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgxOTk3NTQsInJvbGVzIjpbImFkbWluIl0sInN1YiI6M30.689ZaxZkWPPapvRRfPrKCiW_-tWyh5_5BeiOVN5IZoA
+
+### 
+
+GET {{base_url}}/api/v1/{{resource_name}}/4 HTTP/1.1
+
+###
+
+POST {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgxOTc3NDksInJvbGVzIjpbImFkbWluIl0sInN1YiI6M30.3Ffa1jBSSKsA-Bsk1uP-vt3XVCfKW7ocWqA_0Wqyln4
+
+{
+    "attack": "Ember"
+}
+
+### 
+
+PUT {{base_url}}/api/v1/{{resource_name}}/22 HTTP/1.1
+content-type: application/json
+
+{
+    "pokemon_name": "Bulbasaur",
+    "age": 30,
+    "attack": "Ember",
+    "email": "pika@gmail.com"
+}
+
+### 
+
+DELETE {{base_url}}/api/v1/{{resource_name}}/2 HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5NDExMDIsInJvbGVzIjpbImFkbWluIl0sInN1YiI6Mn0.PdeXrR35RHFWME9sy_6YTQ-8cf6m3-PcP8fXDG5wLZQ
+
+
+### 
+POST {{base_url}}/api/v1/register HTTP/1.1
+content-type: application/json
+
+{
+    "email": "user40@gmail.com",
+    "password": "user123"
+}
+
+###
+POST {{base_url}}/api/v1/login HTTP/1.1
+content-type: application/json
+
+{
+    "email": "admin@gmail.com",
+    "password": "admin123"
+}
+
+###
+POST {{base_url}}/api/v1/login HTTP/1.1
+content-type: application/json
+
+{
+    "email": "user40@gmail.com",
+    "password": "user123"
+}
