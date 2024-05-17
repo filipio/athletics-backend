@@ -77,14 +77,14 @@ func TestValidationDetails(t *testing.T) {
 		{
 			ErrorsResponse: ErrorsResponse{
 				ErrorType: "required",
-				Details:   "This field is required",
+				Details:   "field is required",
 			},
 			Path: []string{"http", "build_error_path"},
 		},
 		{
 			ErrorsResponse: ErrorsResponse{
 				ErrorType: "email",
-				Details:   "This field must be an email",
+				Details:   "must be an email",
 			},
 			Path: []string{"very_deep", "error", "path"},
 		},

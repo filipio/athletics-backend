@@ -11,6 +11,7 @@ import (
 
 	athleticsbackend "github.com/filipio/athletics-backend"
 	"github.com/filipio/athletics-backend/config"
+	"github.com/filipio/athletics-backend/utils"
 	"gorm.io/gorm"
 )
 
@@ -18,6 +19,7 @@ import (
 var host string
 var dbInstance *gorm.DB
 var ctx = context.Background()
+var adminToken string
 
 const envPath = "../../.env.test"
 const hostFormula = "http://localhost:%s"
@@ -37,7 +39,17 @@ func TestMain(m *testing.M) {
 		log.Fatalf("failed to wait for server to be ready: %v\n", err)
 	}
 
+	fmt.Println("establishing connection to database in test main")
 	dbInstance = config.DatabaseConnection()
+
+	payload := utils.AnyMap{"email": os.Getenv("ADMIN_EMAIL"), "password": os.Getenv("ADMIN_PASSWORD")}
+	_, tokenResponse, err := Post[map[string]string]("/api/v1/login", payload)
+	if err != nil {
+		panic(err)
+	}
+
+	adminToken = (*tokenResponse)["token"]
+
 	code := m.Run()
 	os.Exit(code)
 }

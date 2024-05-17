@@ -29,6 +29,10 @@ func executeHttp[T any](method string, path string, body any) (*http.Response, *
 		jsonPayload,
 	)
 
+	// req.Header = make(http.Header)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer "+adminToken)
+
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create request: %w", err)
 	}
