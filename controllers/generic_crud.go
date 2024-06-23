@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/filipio/athletics-backend/models"
+	"github.com/filipio/athletics-backend/scopes"
 	"github.com/filipio/athletics-backend/utils"
 	"github.com/filipio/athletics-backend/utils/app_errors"
 	"gorm.io/gorm"
@@ -13,12 +14,19 @@ import (
 // with this implementation it is not possible, query is always the same
 // abstraction for executing query based on the query params is needed
 
-func GetAll[T any](db *gorm.DB) utils.HandlerWithError {
+func GetAll[T any](db *gorm.DB, getScopes scopes.ScopesFunc) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			var records []T
 
-			result := db.Find(&records)
+			var scope *gorm.DB
+			if getScopes != nil {
+				scope = db.Scopes(getScopes(r)...)
+			} else {
+				scope = db
+			}
+
+			result := scope.Find(&records)
 			if result.Error != nil {
 				return result.Error
 			}

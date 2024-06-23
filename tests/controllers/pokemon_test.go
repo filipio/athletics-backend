@@ -10,6 +10,34 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestGetPokemonByName(t *testing.T) {
+	t.Run("GET pokemon by name", testCase(func(t *testing.T) {
+		pokemons := []*models.Pokemon{
+			{PokemonName: "Pikachu", Age: 20, Email: "pikachu@gmail.com", Attack: "Ember"},
+			{PokemonName: "Bulbasaur", Age: 20, Email: "bulba@gmail.com", Attack: "Vine_Whip"},
+			{PokemonName: "Pikachu", Age: 20, Email: "pika2@gmail.com", Attack: "Thunderbolt"},
+		}
+		dbInstance.Save(&pokemons)
+
+		var expectedPokemons *[]models.Pokemon
+		dbInstance.Where("pokemon_name = ?", "Pikachu").Find(&expectedPokemons)
+
+		response, fetchedPokemons, err := Get[[]models.Pokemon](fmt.Sprintf("/api/v1/pokemons?name=%s", "Pikachu"))
+
+		if err != nil {
+			t.Errorf("Error executing request: %s", err.Error())
+		}
+
+		if response.StatusCode != http.StatusOK {
+			t.Errorf("Expected status code 200, got %d", response.StatusCode)
+		}
+
+		if !cmp.Equal(expectedPokemons, fetchedPokemons) {
+			t.Error("Difference between fetched and actual pokemons : ", cmp.Diff(expectedPokemons, fetchedPokemons))
+		}
+	}))
+}
+
 func TestGetPokemon(t *testing.T) {
 
 	t.Run("GET pokemon", testCase(func(t *testing.T) {

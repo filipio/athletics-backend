@@ -25,3 +25,6 @@ go.work
 
 # local tests
 test.http
+
+# others
+.vscode
