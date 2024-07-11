@@ -1,4 +1,4 @@
-package scopes
+package queries
 
 import (
 	"fmt"
@@ -9,14 +9,14 @@ import (
 	"gorm.io/gorm"
 )
 
-type ScopesFunc func(r *http.Request) []func(db *gorm.DB) *gorm.DB
+type BuildQueryFunc func(db *gorm.DB, r *http.Request) *gorm.DB
 
-func PokemonScopes(r *http.Request) []func(db *gorm.DB) *gorm.DB {
-	result := []func(db *gorm.DB) *gorm.DB{}
+func GetPokemonsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	queryFunctions := []func(db *gorm.DB) *gorm.DB{}
 	queryParams := r.URL.Query()
 
 	if queryParams.Has("name") {
-		result = append(result, func(db *gorm.DB) *gorm.DB {
+		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
 			return db.Where("pokemon_name IN (?)", queryParams.Get("name"))
 		})
 	}
@@ -29,5 +29,5 @@ func PokemonScopes(r *http.Request) []func(db *gorm.DB) *gorm.DB {
 	// 	fmt.Println(user.ID, user.Email)
 	// }
 
-	return result
+	return db.Scopes(queryFunctions...)
 }

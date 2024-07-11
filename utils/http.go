@@ -10,6 +10,8 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+var validate *validator.Validate = validator.New(validator.WithRequiredStructEnabled())
+
 type HandlerWithError func(http.ResponseWriter, *http.Request) error
 
 func (f HandlerWithError) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
@@ -45,8 +47,6 @@ func Decode[T any](r *http.Request) (T, error) {
 	if err := json.NewDecoder(r.Body).Decode(&record); err != nil {
 		return record, fmt.Errorf("decode json: %w", err)
 	}
-
-	var validate *validator.Validate = validator.New(validator.WithRequiredStructEnabled())
 
 	if err := validate.Struct(record); err != nil {
 		log.Println(err.Error())

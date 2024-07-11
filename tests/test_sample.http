@@ -1,6 +1,6 @@
 @base_url = http://localhost:8080
-@resource_name = users
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc1MDcyMjksInJvbGVzIjpbInVzZXIiXSwic3ViIjoyNn0.epX3ddsee3JZ817NGzaywJSeo7jzWj9Q-s0FsBwRUaM
+@resource_name = pokemons
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjMzMTM0MjQsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.mjVhKB0U9rmurrIjxOpN1qGCKA1GXFb81McGthEwp84
 
 ###
 
@@ -13,7 +13,7 @@ GET {{base_url}}/readyz HTTP/1.1
 ### 
 
 GET {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgxOTk3NTQsInJvbGVzIjpbImFkbWluIl0sInN1YiI6M30.689ZaxZkWPPapvRRfPrKCiW_-tWyh5_5BeiOVN5IZoA
+Authorization: Bearer {{token}}
 
 ### 
 
@@ -23,10 +23,13 @@ GET {{base_url}}/api/v1/{{resource_name}}/4 HTTP/1.1
 
 POST {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgxOTc3NDksInJvbGVzIjpbImFkbWluIl0sInN1YiI6M30.3Ffa1jBSSKsA-Bsk1uP-vt3XVCfKW7ocWqA_0Wqyln4
+Authorization: Bearer {{token}}
 
 {
-    "attack": "Ember"
+    "pokemon_name": "Bulbasaur",
+    "age": 20,
+    "attack": "Thunderbolt",
+    "email": "pik@gmail.com"
 }
 
 ### 
@@ -43,8 +46,8 @@ content-type: application/json
 
 ### 
 
-DELETE {{base_url}}/api/v1/{{resource_name}}/2 HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5NDExMDIsInJvbGVzIjpbImFkbWluIl0sInN1YiI6Mn0.PdeXrR35RHFWME9sy_6YTQ-8cf6m3-PcP8fXDG5wLZQ
+DELETE {{base_url}}/api/v1/{{resource_name}}/1 HTTP/1.1
+Authorization: Bearer {{token}}
 
 
 ### 

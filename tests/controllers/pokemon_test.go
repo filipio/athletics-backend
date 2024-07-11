@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/filipio/athletics-backend/models"
+	"github.com/filipio/athletics-backend/utils"
 	. "github.com/filipio/athletics-backend/utils"
 	"github.com/google/go-cmp/cmp"
 )
@@ -124,4 +125,31 @@ func TestPostPokemon(t *testing.T) {
 		}
 
 	}))
+}
+
+func TestDeletePokemon(t *testing.T) {
+	t.Run("DELETE pokemon", testCase(func(t *testing.T) {
+		pokemon := &models.Pokemon{
+			PokemonName: "Pikachu",
+			Age:         20,
+			Email:       "pikachu@gmail.com",
+			Attack:      "Ember",
+		}
+		dbInstance.Save(pokemon)
+
+		response, parsedResponse, err := Delete[utils.AnyMap](fmt.Sprintf("/api/v1/pokemons/%d", pokemon.ID))
+
+		if err != nil {
+			t.Errorf("Error executing request: %s", err.Error())
+		}
+
+		if response.StatusCode != http.StatusOK {
+			t.Errorf("Expected status code 200, got %d", response.StatusCode)
+		}
+
+		if len(*parsedResponse) != 0 {
+			t.Error("Expected empty response")
+		}
+	}))
+
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/filipio/athletics-backend/controllers"
 	m "github.com/filipio/athletics-backend/middlewares"
 	"github.com/filipio/athletics-backend/models"
-	"github.com/filipio/athletics-backend/scopes"
+	queries "github.com/filipio/athletics-backend/queries"
 	"github.com/filipio/athletics-backend/utils"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
@@ -26,7 +26,7 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 
-	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll[models.Pokemon](db, scopes.PokemonScopes), db)))
+	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll[models.Pokemon](db, queries.GetPokemonsQuery), db)))
 	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get[models.Pokemon](db)))
 	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(m.AdminOnly(controllers.Create[models.Pokemon](db), db)))
 	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon](db)))
@@ -50,13 +50,8 @@ func seed(db *gorm.DB) {
 	adminRole := models.Role{Name: utils.AdminRole}
 	userRole := models.Role{Name: utils.UserRole}
 
-	if db.Where("name = ?", utils.AdminRole).First(&adminRole).RowsAffected == 0 {
-		db.Create(&adminRole)
-	}
-
-	if db.Where("name = ?", utils.UserRole).First(&userRole).RowsAffected == 0 {
-		db.Create(&userRole)
-	}
+	db.FirstOrCreate(&adminRole, models.Role{Name: utils.AdminRole})
+	db.FirstOrCreate(&userRole, models.Role{Name: utils.UserRole})
 
 	adminEmail := os.Getenv("ADMIN_EMAIL")
 	adminPassword := os.Getenv("ADMIN_PASSWORD")
@@ -67,10 +62,8 @@ func seed(db *gorm.DB) {
 			Password: adminPassword,
 		}
 
-		if db.Where("email = ?", adminEmail).First(&adminUser).RowsAffected == 0 {
-			db.Create(&adminUser)
-			db.Model(&adminUser).Association("Roles").Append(&adminRole)
-		}
+		db.FirstOrCreate(&adminUser, models.User{Email: adminEmail})
+		db.Model(&adminUser).Association("Roles").Append(&adminRole)
 	}
 }
 
@@ -140,5 +133,3 @@ func newServerHandler(db *gorm.DB) http.Handler {
 
 	return handler
 }
-
-// TODO: consider adding new server mux so error middleware can be extracted as a common one for all
