@@ -39,7 +39,7 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("GET /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.GetAll(db, queries.GetUsersQuery, responses.BuildUserResponse), db)))
 	mux.Handle("GET /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Get(db, queries.GetUserQuery, responses.BuildUserResponse), db)))
 	mux.Handle("POST /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.Create(db, responses.BuildUserResponse), db)))
-	mux.Handle("PUT /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Update[models.User](db, responses.BuildUserResponse), db)))
+	mux.Handle("PUT /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Update(db, responses.BuildUserResponse), db)))
 	mux.Handle("DELETE /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Delete[models.User](db), db)))
 }
 

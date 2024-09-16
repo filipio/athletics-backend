@@ -127,6 +127,35 @@ func TestPostPokemon(t *testing.T) {
 	}))
 }
 
+func TestUpdatePokemon(t *testing.T) {
+	t.Run("PUT pokemon", testCase(func(t *testing.T) {
+		pokemon := &models.Pokemon{
+			PokemonName: "Pikachu",
+			Age:         20,
+			Email:       "foo.bar@pikachu.com",
+			Attack:      "Ember",
+		}
+		dbInstance.Save(pokemon)
+		body := AnyMap{"pokemon_name": "Pikachu", "age": 30, "email": "foo@pikachu.com", "attack": "Thunderbolt"}
+		response, updatedPokemon, err := Put[models.Pokemon](fmt.Sprintf("/api/v1/pokemons/%d", pokemon.ID), body)
+
+		if err != nil {
+			t.Errorf("Error executing request: %s", err.Error())
+		}
+
+		if response.StatusCode != http.StatusOK {
+			t.Errorf("Expected status code 200, got %d", response.StatusCode)
+		}
+
+		expectedPokemon := &models.Pokemon{}
+		dbInstance.Last(expectedPokemon)
+
+		if !cmp.Equal(expectedPokemon, updatedPokemon) {
+			t.Error("Difference between fetched and actual pokemon : ", cmp.Diff(expectedPokemon, updatedPokemon))
+		}
+	}))
+}
+
 func TestDeletePokemon(t *testing.T) {
 	t.Run("DELETE pokemon", testCase(func(t *testing.T) {
 		pokemon := &models.Pokemon{
