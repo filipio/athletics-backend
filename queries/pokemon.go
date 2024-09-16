@@ -9,8 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type BuildQueryFunc func(db *gorm.DB, r *http.Request) *gorm.DB
-
 func GetPokemonsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	queryFunctions := []func(db *gorm.DB) *gorm.DB{}
 	queryParams := r.URL.Query()

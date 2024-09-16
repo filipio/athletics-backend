@@ -5,12 +5,13 @@ import (
 
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/queries"
+	"github.com/filipio/athletics-backend/responses"
 	"github.com/filipio/athletics-backend/utils"
 	"github.com/filipio/athletics-backend/utils/app_errors"
 	"gorm.io/gorm"
 )
 
-func GetAll[T any](db *gorm.DB, buildQuery queries.BuildQueryFunc) utils.HandlerWithError {
+func GetAll[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			var records []T
@@ -22,7 +23,12 @@ func GetAll[T any](db *gorm.DB, buildQuery queries.BuildQueryFunc) utils.Handler
 				return queryResult.Error
 			}
 
-			if err := utils.Encode(w, r, http.StatusOK, records); err != nil {
+			var responses []V
+			for _, record := range records {
+				responses = append(responses, buildResponse(record))
+			}
+
+			if err := utils.Encode(w, r, http.StatusOK, responses); err != nil {
 				return err
 			}
 
