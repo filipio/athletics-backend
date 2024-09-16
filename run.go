@@ -28,18 +28,18 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 
 	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetPokemonsQuery, responses.DefaultResponse[models.Pokemon]), db)))
-	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get[models.Pokemon](db)))
-	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(m.AdminOnly(controllers.Create[models.Pokemon](db), db)))
-	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon](db)))
+	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get(db, queries.GetByIdQuery, responses.DefaultResponse[models.Pokemon])))
+	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(m.AdminOnly(controllers.Create[models.Pokemon](db, responses.DefaultResponse), db)))
+	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon](db, responses.DefaultResponse)))
 	mux.Handle("DELETE /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Delete[models.Pokemon](db)))
 
 	mux.Handle("POST /api/v1/register", m.ErrorsMiddleware(controllers.Register(db)))
 	mux.Handle("POST /api/v1/login", m.ErrorsMiddleware(controllers.Login(db)))
 
 	mux.Handle("GET /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.GetAll(db, queries.GetUsersQuery, responses.BuildUserResponse), db)))
-	mux.Handle("GET /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Get[models.User](db), db)))
-	mux.Handle("POST /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.Create[models.User](db), db)))
-	mux.Handle("PUT /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Update[models.User](db), db)))
+	mux.Handle("GET /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Get(db, queries.GetUserQuery, responses.BuildUserResponse), db)))
+	mux.Handle("POST /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.Create(db, responses.BuildUserResponse), db)))
+	mux.Handle("PUT /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Update[models.User](db, responses.BuildUserResponse), db)))
 	mux.Handle("DELETE /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Delete[models.User](db), db)))
 }
 

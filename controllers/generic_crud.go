@@ -36,13 +36,13 @@ func GetAll[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildR
 		})
 }
 
-func Get[T any](db *gorm.DB) utils.HandlerWithError {
+func Get[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			var record T
 
-			id := utils.IntPathValue(r, "id")
-			queryResult := db.First(&record, id)
+			query := buildQuery(db, r)
+			queryResult := query.First(&record)
 
 			if queryResult.Error != nil {
 				if queryResult.Error.Error() != "record not found" {
@@ -52,7 +52,9 @@ func Get[T any](db *gorm.DB) utils.HandlerWithError {
 				}
 			}
 
-			if err := utils.Encode(w, r, http.StatusOK, record); err != nil {
+			response := buildResponse(record)
+
+			if err := utils.Encode(w, r, http.StatusOK, response); err != nil {
 				return err
 			}
 
@@ -61,7 +63,7 @@ func Get[T any](db *gorm.DB) utils.HandlerWithError {
 		})
 }
 
-func Create[T models.WithID](db *gorm.DB) utils.HandlerWithError {
+func Create[T models.WithID, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			record, err := utils.Decode[T](r)
@@ -77,8 +79,9 @@ func Create[T models.WithID](db *gorm.DB) utils.HandlerWithError {
 			}
 
 			db.First(&record, record.GetID())
+			response := buildResponse(record)
 
-			if err := utils.Encode(w, r, http.StatusOK, record); err != nil {
+			if err := utils.Encode(w, r, http.StatusOK, response); err != nil {
 				return err
 			}
 
@@ -86,7 +89,7 @@ func Create[T models.WithID](db *gorm.DB) utils.HandlerWithError {
 		})
 }
 
-func Update[T any](db *gorm.DB) utils.HandlerWithError {
+func Update[T any, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			record, err := utils.Decode[T](r)
@@ -107,7 +110,9 @@ func Update[T any](db *gorm.DB) utils.HandlerWithError {
 			}
 
 			db.First(&record, id)
-			if err := utils.Encode(w, r, http.StatusOK, record); err != nil {
+			response := buildResponse(record)
+
+			if err := utils.Encode(w, r, http.StatusOK, response); err != nil {
 				return err
 			}
 
