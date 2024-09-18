@@ -17,3 +17,7 @@ func GetByIdQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	id := utils.IntPathValue(r, "id")
 	return db.Where("id = ?", id)
 }
+
+func Paginate(db *gorm.DB, pageNo int, perPage int) *gorm.DB {
+	return db.Offset((pageNo - 1) * perPage).Limit(perPage)
+}

@@ -27,10 +27,10 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 
-	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetPokemonsQuery, responses.DefaultResponse[models.Pokemon]), db)))
-	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get(db, queries.GetByIdQuery, responses.DefaultResponse[models.Pokemon])))
-	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(m.AdminOnly(controllers.Create[models.Pokemon](db, responses.DefaultResponse), db)))
-	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon](db, responses.DefaultResponse)))
+	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetPokemonsQuery, responses.BuildDefaultResponse[models.Pokemon]), db)))
+	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get(db, queries.GetByIdQuery, responses.BuildDefaultResponse[models.Pokemon])))
+	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(m.AdminOnly(controllers.Create[models.Pokemon](db, responses.BuildDefaultResponse), db)))
+	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon](db, responses.BuildDefaultResponse)))
 	mux.Handle("DELETE /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Delete[models.Pokemon](db)))
 
 	mux.Handle("POST /api/v1/register", m.ErrorsMiddleware(controllers.Register(db)))

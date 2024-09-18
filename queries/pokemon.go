@@ -1,11 +1,8 @@
 package queries
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/filipio/athletics-backend/models"
-	"github.com/filipio/athletics-backend/utils"
 	"gorm.io/gorm"
 )
 
@@ -19,13 +16,9 @@ func GetPokemonsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 		})
 	}
 
-	userAny := r.Context().Value(utils.UserContextKey).(models.User)
-	fmt.Println(userAny.ID, userAny.Email)
-
-	// user := r.Context().Value(utils.UserContextKey).(*models.User)
-	// if user != nil {
-	// 	fmt.Println(user.ID, user.Email)
-	// }
+	// TODO: remove below
+	// userAny := r.Context().Value(utils.UserContextKey).(models.User)
+	// fmt.Println(userAny.ID, userAny.Email)
 
 	return db.Scopes(queryFunctions...)
 }

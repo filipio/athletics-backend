@@ -32,6 +32,29 @@ func IntPathValue(r *http.Request, key string) int {
 	return result
 }
 
+func IntQueryValue(r *http.Request, key string) int {
+	value := r.URL.Query().Get(key)
+	if value == "" {
+		return 0
+	}
+	result, _ := strconv.Atoi(value)
+	return result
+}
+
+func PaginationParams(r *http.Request) (pageNo int, perPage int) {
+	pageNo = IntQueryValue(r, "page_no")
+	if pageNo == 0 {
+		pageNo = DefaultPageNumber
+	}
+
+	perPage = IntQueryValue(r, "per_page")
+	if perPage == 0 {
+		perPage = DefaultPageSize
+	}
+
+	return
+}
+
 func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

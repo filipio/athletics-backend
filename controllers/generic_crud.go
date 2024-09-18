@@ -17,18 +17,27 @@ func GetAll[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildR
 			var records []T
 
 			query := buildQuery(db, r)
-			queryResult := query.Find(&records)
+			pageNo, perPage := utils.PaginationParams(r)
+			queryResult := queries.Paginate(query, pageNo, perPage).Find(&records)
 
 			if queryResult.Error != nil {
 				return queryResult.Error
 			}
 
-			var responses []V
-			for _, record := range records {
-				responses = append(responses, buildResponse(record))
+			var instance T
+			var totalCount int64
+			totalCountResult := buildQuery(db.Model(&instance), r).Count(&totalCount)
+			if totalCountResult.Error != nil {
+				return totalCountResult.Error
 			}
 
-			if err := utils.Encode(w, r, http.StatusOK, responses); err != nil {
+			var responseRecords []V = []V{}
+			for _, record := range records {
+				responseRecords = append(responseRecords, buildResponse(record))
+			}
+
+			paginatedResponse := responses.BuildPaginatedResponse(responseRecords, totalCount, pageNo, perPage)
+			if err := utils.Encode(w, r, http.StatusOK, paginatedResponse); err != nil {
 				return err
 			}
 
