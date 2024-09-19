@@ -24,8 +24,16 @@ import (
 const shutdownTimeout = 10 * time.Second
 
 func addRoutes(mux *http.ServeMux, db *gorm.DB) {
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
-	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
+	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
+	mux.HandleFunc("GET /api/readyz", func(w http.ResponseWriter, r *http.Request) {
+		result := db.Exec("SELECT 1")
+		if result.Error != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(result.Error.Error()))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	})
 
 	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetPokemonsQuery, responses.BuildDefaultResponse[models.Pokemon]), db)))
 	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get(db, queries.GetByIdQuery, responses.BuildDefaultResponse[models.Pokemon])))
