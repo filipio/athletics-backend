@@ -49,10 +49,16 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("POST /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.Create(db, responses.BuildUserResponse), db)))
 	mux.Handle("PUT /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Update(db, responses.BuildUserResponse), db)))
 	mux.Handle("DELETE /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Delete[models.User](db), db)))
+
+	mux.Handle("GET /api/v1/athletes", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetAthletesQuery, responses.BuildAthleteResponse), db)))
+	mux.Handle("GET /api/v1/athletes/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get(db, queries.GetByIdQuery, responses.BuildAthleteResponse), db)))
+	mux.Handle("POST /api/v1/athletes", m.ErrorsMiddleware(m.UserOnly(controllers.Create(db, responses.BuildAthleteResponse), db)))
+	mux.Handle("PUT /api/v1/athletes/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Update(db, responses.BuildAthleteResponse), db)))
+	mux.Handle("DELETE /api/v1/athletes/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Delete[models.Athlete](db), db)))
 }
 
 func executeMigrations(db *gorm.DB) {
-	db.AutoMigrate(&models.Pokemon{}, &models.User{}, &models.Role{})
+	db.AutoMigrate(&models.Pokemon{}, &models.User{}, &models.Role{}, &models.Athlete{}, &models.Discipline{})
 }
 
 func seed(db *gorm.DB) {

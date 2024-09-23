@@ -6,6 +6,6 @@ type DefaultResponse struct {
 
 type BuildResponseFunc[T any, V any] func(T) V
 
-func BuildDefaultResponse[T any](model T) DefaultResponse {
-	return DefaultResponse{Data: model}
+func BuildDefaultResponse[T any](model T) T {
+	return model
 }
