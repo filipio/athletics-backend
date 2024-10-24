@@ -55,10 +55,9 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("POST /api/v1/athletes", m.ErrorsMiddleware(m.UserOnly(controllers.Create(db, responses.BuildAthleteResponse), db)))
 	mux.Handle("PUT /api/v1/athletes/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Update(db, responses.BuildAthleteResponse), db)))
 	mux.Handle("DELETE /api/v1/athletes/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Delete[models.Athlete](db), db)))
-}
 
-func executeMigrations(db *gorm.DB) {
-	db.AutoMigrate(&models.Pokemon{}, &models.User{}, &models.Role{}, &models.Athlete{}, &models.Discipline{})
+	// what is needed:
+	// fetch events (all available)
 }
 
 func seed(db *gorm.DB) {
@@ -97,9 +96,6 @@ func Run(ctx context.Context, envPath string) error {
 
 	db := config.DatabaseConnection()
 	log.Print("established connection to database")
-
-	executeMigrations(db)
-	log.Print("migrated database")
 
 	seed(db)
 	log.Print("seeded database")

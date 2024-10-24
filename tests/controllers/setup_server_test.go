@@ -58,7 +58,7 @@ func waitForReady(ctx context.Context) error {
 	startTime := time.Now()
 	for {
 		host = fmt.Sprintf(hostFormula, os.Getenv("PORT"))
-		endpoint := fmt.Sprintf("%s/readyz", host)
+		endpoint := fmt.Sprintf("%s/api/readyz", host)
 		req, err := http.NewRequestWithContext(
 			ctx,
 			http.MethodGet,
