@@ -80,3 +80,11 @@ func testCase(test func(t *testing.T)) func(*testing.T) {
 		test(t)
 	}
 }
+
+func ToStruct[T any](obj any) T {
+	jsonData, _ := json.Marshal(obj)
+	var destinationStruct T
+	json.Unmarshal(jsonData, &destinationStruct)
+
+	return destinationStruct
+}

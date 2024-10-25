@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/filipio/athletics-backend/models"
+	"github.com/filipio/athletics-backend/responses"
 	"github.com/filipio/athletics-backend/utils"
 	. "github.com/filipio/athletics-backend/utils"
 	"github.com/google/go-cmp/cmp"
@@ -23,7 +24,11 @@ func TestGetPokemonByName(t *testing.T) {
 		var expectedPokemons *[]models.Pokemon
 		dbInstance.Where("pokemon_name = ?", "Pikachu").Find(&expectedPokemons)
 
-		response, fetchedPokemons, err := Get[[]models.Pokemon](fmt.Sprintf("/api/v1/pokemons?name=%s", "Pikachu"))
+		response, paginatedResponse, err := Get[responses.PaginatedResponse](fmt.Sprintf("/api/v1/pokemons?name=%s", "Pikachu"))
+		fetchedPokemons := []models.Pokemon{}
+		for _, pokemonMap := range paginatedResponse.Data.([]interface{}) {
+			fetchedPokemons = append(fetchedPokemons, ToStruct[models.Pokemon](pokemonMap))
+		}
 
 		if err != nil {
 			t.Errorf("Error executing request: %s", err.Error())
@@ -33,7 +38,7 @@ func TestGetPokemonByName(t *testing.T) {
 			t.Errorf("Expected status code 200, got %d", response.StatusCode)
 		}
 
-		if !cmp.Equal(expectedPokemons, fetchedPokemons) {
+		if !cmp.Equal(*expectedPokemons, fetchedPokemons) {
 			t.Error("Difference between fetched and actual pokemons : ", cmp.Diff(expectedPokemons, fetchedPokemons))
 		}
 	}))
