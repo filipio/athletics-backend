@@ -6,8 +6,8 @@ import (
 
 type AthleteResponse struct {
 	ID          uint     `json:"id"`
-	FirstName   string   `json:"email"`
-	LastName    string   `json:"roles"`
+	FirstName   string   `json:"first_name"`
+	LastName    string   `json:"last_name"`
 	Disciplines []string `json:"disciplines"`
 }
 
