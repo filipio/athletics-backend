@@ -1,0 +1,2 @@
+create index index_athletes_full_name on athletes using gin ((first_name || ' ' || last_name) gin_trgm_ops);
+create index index_athletes_full_name_rev on athletes using gin ((last_name || ' ' || first_name) gin_trgm_ops);

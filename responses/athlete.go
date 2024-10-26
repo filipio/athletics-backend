@@ -6,8 +6,8 @@ import (
 
 type AthleteResponse struct {
 	ID          uint     `json:"id"`
-	FirstName   string   `json:"first_name"`
-	LastName    string   `json:"last_name"`
+	FirstName   *string  `json:"first_name"`
+	LastName    *string  `json:"last_name"`
 	Disciplines []string `json:"disciplines"`
 }
 
@@ -17,10 +17,12 @@ func BuildAthleteResponse(model models.Athlete) AthleteResponse {
 		disciplines[i] = discipline.Name
 	}
 
-	return AthleteResponse{
+	athleteResponse := AthleteResponse{
 		ID:          model.ID,
-		FirstName:   *model.FirstName,
-		LastName:    *model.LastName,
+		FirstName:   model.FirstName,
+		LastName:    model.LastName,
 		Disciplines: disciplines,
 	}
+
+	return athleteResponse
 }

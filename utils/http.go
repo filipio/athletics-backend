@@ -41,7 +41,7 @@ func IntQueryValue(r *http.Request, key string) int {
 	return result
 }
 
-func PaginationParams(r *http.Request) (pageNo int, perPage int) {
+func PaginationParams(r *http.Request) (pageNo int, perPage int, orderBy string, orderDirection string) {
 	pageNo = IntQueryValue(r, "page_no")
 	if pageNo == 0 {
 		pageNo = DefaultPageNumber
@@ -50,6 +50,16 @@ func PaginationParams(r *http.Request) (pageNo int, perPage int) {
 	perPage = IntQueryValue(r, "per_page")
 	if perPage == 0 {
 		perPage = DefaultPageSize
+	}
+
+	orderBy = r.URL.Query().Get("order_by")
+	if orderBy == "" {
+		orderBy = DefaultOrderBy
+	}
+
+	orderDirection = r.URL.Query().Get("order_dir")
+	if orderDirection == "" {
+		orderDirection = "asc"
 	}
 
 	return

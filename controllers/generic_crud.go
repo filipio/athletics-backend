@@ -17,8 +17,8 @@ func GetAll[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildR
 			var records []T
 
 			query := buildQuery(db, r)
-			pageNo, perPage := utils.PaginationParams(r)
-			queryResult := queries.Paginate(query, pageNo, perPage).Find(&records)
+			pageNo, perPage, orderBy, orderDirection := utils.PaginationParams(r)
+			queryResult := queries.Paginate(query, pageNo, perPage, orderBy, orderDirection).Find(&records)
 
 			if queryResult.Error != nil {
 				return queryResult.Error
