@@ -1,7 +1,6 @@
 package queries
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -21,14 +20,26 @@ func GetAthletesQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 		})
 	}
 
-	// filter by discipline_ids passed in query params, using disciplines relationship
 	if queryParams.Has("discipline_ids") {
-		fmt.Println(queryParams.Get("discipline_ids"))
 		disciplineIds := strings.Split(queryParams.Get("discipline_ids"), ",")
 
 		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
 			return db.Joins("JOIN athletes_disciplines ON athletes_disciplines.athlete_id = athletes.id").
 				Where("athletes_disciplines.discipline_id IN (?)", disciplineIds)
+		})
+	}
+
+	if queryParams.Has("country") {
+		country := strings.ToUpper(queryParams.Get("country"))
+		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
+			return db.Where("country = ?", country)
+		})
+	}
+
+	if queryParams.Has("gender") {
+		gender := strings.ToLower(queryParams.Get("gender"))
+		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
+			return db.Where("gender = ?", gender)
 		})
 	}
 
