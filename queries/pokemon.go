@@ -16,9 +16,5 @@ func GetPokemonsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 		})
 	}
 
-	// TODO: remove below
-	// userAny := r.Context().Value(utils.UserContextKey).(models.User)
-	// fmt.Println(userAny.ID, userAny.Email)
-
 	return db.Scopes(queryFunctions...)
 }
