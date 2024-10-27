@@ -56,6 +56,9 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("PUT /api/v1/athletes/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Update(db, responses.BuildAthleteResponse), db)))
 	mux.Handle("DELETE /api/v1/athletes/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Delete[models.Athlete](db), db)))
 
+	mux.Handle("GET /api/v1/disciplines", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.DefaultQuery, responses.BuildDisciplineResponse), db)))
+	mux.Handle("GET /api/v1/disciplines/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get(db, queries.GetByIdQuery, responses.BuildDisciplineResponse), db)))
+
 	// what is needed:
 	// fetch events (all available)
 }
