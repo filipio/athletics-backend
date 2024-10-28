@@ -62,6 +62,11 @@ func buildErrorMessage(err validator.FieldError) string {
 		return fmt.Sprintf("must be less than %s", err.Param())
 	case "min":
 		return fmt.Sprintf("must be greater than %s", err.Param())
+	case "id_of":
+		return fmt.Sprintf("must be an existing id (integer) of '%s' resource", err.Param())
+	case "oneof":
+		param := strings.ReplaceAll(err.Param(), " ", ",")
+		return fmt.Sprintf("must be one of values:%s", param)
 	default:
 		return "is invalid"
 	}

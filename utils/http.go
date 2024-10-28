@@ -8,11 +8,33 @@ import (
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
+	"gorm.io/gorm"
 )
 
 var validate *validator.Validate = validator.New(validator.WithRequiredStructEnabled())
 
 type HandlerWithError func(http.ResponseWriter, *http.Request) error
+
+func RegisterValidations(db *gorm.DB) {
+
+	validate.RegisterValidation("id_of", func(fl validator.FieldLevel) bool {
+		tableName := fl.Param() + "s"
+		passedId := fl.Field().Uint()
+		sqlQuery := fmt.Sprintf("SELECT id FROM %s WHERE id = ?", tableName)
+
+		result := db.Exec(sqlQuery, passedId)
+		if result.Error != nil {
+			fmt.Println("Error:", result.Error)
+			return false
+		}
+		if result.RowsAffected != 1 {
+			fmt.Println("wrong number of rows affected:", result.RowsAffected)
+			return false
+		}
+
+		return true
+	})
+}
 
 func (f HandlerWithError) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
 	return f(w, r)
