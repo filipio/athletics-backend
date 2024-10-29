@@ -1,4 +1,4 @@
-package app_errors
+package utils
 
 type AppError struct {
 	Message string
@@ -45,5 +45,9 @@ type InvalidJwtClaimsError struct {
 }
 
 type JwtTokenParsingError struct {
+	AppError
+}
+
+type InvalidUserError struct {
 	AppError
 }

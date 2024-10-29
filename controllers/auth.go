@@ -7,7 +7,6 @@ import (
 
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
-	"github.com/filipio/athletics-backend/utils/app_errors"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -67,11 +66,11 @@ func Login(db *gorm.DB) utils.HandlerWithError {
 			db.First(&user, "email = ?", bodyUser.Email)
 
 			if user.GetID() == 0 {
-				return app_errors.LoginError{}
+				return utils.LoginError{}
 			}
 
 			if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(bodyUser.Password)); err != nil {
-				return app_errors.LoginError{}
+				return utils.LoginError{}
 			}
 
 			var roles []models.Role

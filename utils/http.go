@@ -6,35 +6,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/go-playground/validator/v10"
-	"gorm.io/gorm"
 )
 
-var validate *validator.Validate = validator.New(validator.WithRequiredStructEnabled())
-
 type HandlerWithError func(http.ResponseWriter, *http.Request) error
-
-func RegisterValidations(db *gorm.DB) {
-
-	validate.RegisterValidation("id_of", func(fl validator.FieldLevel) bool {
-		tableName := fl.Param() + "s"
-		passedId := fl.Field().Uint()
-		sqlQuery := fmt.Sprintf("SELECT id FROM %s WHERE id = ?", tableName)
-
-		result := db.Exec(sqlQuery, passedId)
-		if result.Error != nil {
-			fmt.Println("Error:", result.Error)
-			return false
-		}
-		if result.RowsAffected != 1 {
-			fmt.Println("wrong number of rows affected:", result.RowsAffected)
-			return false
-		}
-
-		return true
-	})
-}
 
 func (f HandlerWithError) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
 	return f(w, r)
@@ -96,7 +70,7 @@ func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) erro
 	return nil
 }
 
-func Decode[T any](r *http.Request) (T, error) {
+func Decode[T DbModel](r *http.Request) (T, error) {
 	var record T
 
 	if err := json.NewDecoder(r.Body).Decode(&record); err != nil {
@@ -105,6 +79,10 @@ func Decode[T any](r *http.Request) (T, error) {
 
 	if err := validate.Struct(record); err != nil {
 		log.Println(err.Error())
+		return record, err
+	}
+
+	if err := record.Validate(r); err != nil {
 		return record, err
 	}
 

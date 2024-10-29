@@ -3,15 +3,13 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/queries"
 	"github.com/filipio/athletics-backend/responses"
 	"github.com/filipio/athletics-backend/utils"
-	"github.com/filipio/athletics-backend/utils/app_errors"
 	"gorm.io/gorm"
 )
 
-func GetAll[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func GetAll[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			var records []T
@@ -45,7 +43,7 @@ func GetAll[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildR
 		})
 }
 
-func Get[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func Get[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			var record T
@@ -57,7 +55,7 @@ func Get[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResp
 				if queryResult.Error.Error() != "record not found" {
 					return queryResult.Error
 				} else {
-					return app_errors.RecordNotFoundError{}
+					return utils.RecordNotFoundError{}
 				}
 			}
 
@@ -72,7 +70,7 @@ func Get[T any, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResp
 		})
 }
 
-func Create[T models.WithID, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func Create[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			record, err := utils.Decode[T](r)
@@ -98,7 +96,8 @@ func Create[T models.WithID, V any](db *gorm.DB, buildResponse responses.BuildRe
 		})
 }
 
-func Update[T any, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
+// todo: restrict to only given query
+func Update[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			record, err := utils.Decode[T](r)
@@ -115,7 +114,7 @@ func Update[T any, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc
 			}
 
 			if queryResult.RowsAffected == 0 {
-				return app_errors.RecordNotFoundError{}
+				return utils.RecordNotFoundError{}
 			}
 
 			db.First(&record, id)
@@ -129,7 +128,8 @@ func Update[T any, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc
 		})
 }
 
-func Delete[T any](db *gorm.DB) utils.HandlerWithError {
+// todo: restrict to only given query
+func Delete[T utils.DbModel](db *gorm.DB) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			var record T
@@ -142,7 +142,7 @@ func Delete[T any](db *gorm.DB) utils.HandlerWithError {
 			}
 
 			if queryResult.RowsAffected == 0 {
-				return app_errors.RecordNotFoundError{}
+				return utils.RecordNotFoundError{}
 			}
 
 			if err := utils.Encode(w, r, http.StatusOK, utils.AnyMap{}); err != nil {

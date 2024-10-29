@@ -1,12 +1,10 @@
 package models
 
 import (
+	"fmt"
+	"net/http"
 	"time"
 )
-
-type WithID interface {
-	GetID() uint
-}
 
 type AppModel struct {
 	ID        uint      `gorm:"primarykey" json:"id"`
@@ -16,4 +14,9 @@ type AppModel struct {
 
 func (m AppModel) GetID() uint {
 	return m.ID
+}
+
+func (m AppModel) Validate(r *http.Request) error {
+	fmt.Println("validating itself!")
+	return nil
 }

@@ -1,6 +1,9 @@
 package models
 
 import (
+	"fmt"
+	"net/http"
+
 	"gorm.io/datatypes"
 )
 
@@ -10,4 +13,10 @@ type Question struct {
 	Content       string          `json:"content" gorm:"not null" validate:"required"`
 	CorrectAnswer *datatypes.JSON `json:"correct_answer"`
 	Type          string          `json:"type" gorm:"not null" validate:"oneof=athlete country"`
+	Answers       []Answer        `json:"answers,omitempty" gorm:"foreignKey:QuestionID;constraint:OnDelete:CASCADE"`
+}
+
+func (m Question) Validate(r *http.Request) error {
+	fmt.Println("questions validation is executed")
+	return nil
 }

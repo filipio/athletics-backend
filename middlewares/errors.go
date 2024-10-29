@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/filipio/athletics-backend/utils"
-	"github.com/filipio/athletics-backend/utils/app_errors"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -26,66 +25,73 @@ func errorResponse(err error) (httpStatus int, errorResponse utils.ErrorsRespons
 		}
 	}
 
-	if _, ok := err.(app_errors.RecordNotFoundError); ok {
+	if _, ok := err.(utils.RecordNotFoundError); ok {
 		return http.StatusBadRequest, utils.ErrorsResponse{
 			ErrorType: "bad_request",
 			Details:   "record not found",
 		}
 	}
 
-	if _, ok := err.(app_errors.LoginError); ok {
+	if _, ok := err.(utils.LoginError); ok {
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "login_error",
 			Details:   "login or password is invalid",
 		}
 	}
 
-	if _, ok := err.(app_errors.AuthHeaderMissingError); ok {
+	if _, ok := err.(utils.AuthHeaderMissingError); ok {
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "auth_error",
 			Details:   "header 'Authorization' is missing",
 		}
 	}
 
-	if _, ok := err.(app_errors.JwtTokenExpiredError); ok {
+	if _, ok := err.(utils.JwtTokenExpiredError); ok {
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "auth_error",
 			Details:   "auth token is expired",
 		}
 	}
 
-	if _, ok := err.(app_errors.InvalidAuthHeaderError); ok {
+	if _, ok := err.(utils.InvalidAuthHeaderError); ok {
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "auth_error",
 			Details:   "auth header is not in format 'Bearer token'",
 		}
 	}
 
-	if _, ok := err.(app_errors.UserNotFoundError); ok {
+	if _, ok := err.(utils.UserNotFoundError); ok {
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "auth_error",
 			Details:   "user associated with token does not exist",
 		}
 	}
 
-	if _, ok := err.(app_errors.ActionForbiddenError); ok {
+	if _, ok := err.(utils.ActionForbiddenError); ok {
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "auth_error",
 			Details:   "user is unauthorized to perform this action",
 		}
 	}
 
-	if _, ok := err.(app_errors.InvalidJwtClaimsError); ok {
+	if _, ok := err.(utils.InvalidJwtClaimsError); ok {
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "auth_error",
 			Details:   "jwt claims are invalid",
 		}
 	}
 
-	if _, ok := err.(app_errors.JwtTokenParsingError); ok {
+	if _, ok := err.(utils.JwtTokenParsingError); ok {
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "auth_error",
 			Details:   err.Error(),
+		}
+	}
+
+	if _, ok := err.(utils.InvalidUserError); ok {
+		return http.StatusUnauthorized, utils.ErrorsResponse{
+			ErrorType: "auth_error",
+			Details:   "user is not allowed to execute the action on this resource",
 		}
 	}
 

@@ -6,7 +6,35 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/iancoleman/strcase"
+	"gorm.io/gorm"
 )
+
+var validate *validator.Validate = validator.New(validator.WithRequiredStructEnabled())
+
+func RegisterValidations(db *gorm.DB) {
+
+	validate.RegisterValidation("id_of", func(fl validator.FieldLevel) bool {
+		// TODO: extract question type and validate content json based on it
+		// questionType := fl.Parent().FieldByName("Type")
+		// fmt.Printf("questionType: %v\n", questionType)
+
+		tableName := fl.Param() + "s"
+		passedId := fl.Field().Uint()
+		sqlQuery := fmt.Sprintf("SELECT id FROM %s WHERE id = ?", tableName)
+
+		result := db.Exec(sqlQuery, passedId)
+		if result.Error != nil {
+			fmt.Println("Error:", result.Error)
+			return false
+		}
+		if result.RowsAffected != 1 {
+			fmt.Println("wrong number of rows affected:", result.RowsAffected)
+			return false
+		}
+
+		return true
+	})
+}
 
 type ValidationResponseItem struct {
 	ErrorsResponse

@@ -37,7 +37,7 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 
 	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetPokemonsQuery, responses.BuildDefaultResponse[models.Pokemon]), db)))
 	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get(db, queries.GetByIdQuery, responses.BuildDefaultResponse[models.Pokemon])))
-	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(m.AdminOnly(controllers.Create[models.Pokemon](db, responses.BuildDefaultResponse), db)))
+	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.Create[models.Pokemon](db, responses.BuildDefaultResponse), db)))
 	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon](db, responses.BuildDefaultResponse)))
 	mux.Handle("DELETE /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Delete[models.Pokemon](db)))
 
@@ -70,6 +70,23 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("POST /api/v1/questions", m.ErrorsMiddleware(m.UserOnly(controllers.Create[models.Question](db, responses.BuildDefaultResponse), db)))
 	mux.Handle("PUT /api/v1/questions/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Update[models.Question](db, responses.BuildDefaultResponse), db)))
 	mux.Handle("DELETE /api/v1/questions/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Delete[models.Question](db), db)))
+
+	mux.Handle("GET /api/v1/users/me/answers", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetAnswersQuery, responses.BuildDefaultResponse[models.Answer]), db)))
+	mux.Handle("GET /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get(db, queries.GetAnswerQuery, responses.BuildDefaultResponse[models.Answer]), db)))
+	mux.Handle("POST /api/v1/users/me/answers", m.ErrorsMiddleware(m.UserOnly(controllers.Create[models.Answer](db, responses.BuildDefaultResponse), db)))
+	mux.Handle("PUT /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Update[models.Answer](db, responses.BuildDefaultResponse), db)))
+	mux.Handle("DELETE /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Delete[models.Answer](db), db)))
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		response := utils.ErrorsResponse{
+			ErrorType: "not_found_error",
+			Details:   "path not found",
+		}
+		utils.Encode(w, r, http.StatusNotFound, response)
+	})
+
+	// mux.Handle("GET /api/v1/answers", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetAnswersQuery, responses.BuildDefaultResponse[models.Answer]), db)))
+	// mux.Handle("GET /api/v1/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get(db, queries.GetAnswerQuery, responses.BuildDefaultResponse[models.Answer]), db)))
 
 	// what is needed:
 	// fetch events (all available)
