@@ -91,7 +91,7 @@ func errorResponse(err error) (httpStatus int, errorResponse utils.ErrorsRespons
 	if _, ok := err.(utils.InvalidUserError); ok {
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "auth_error",
-			Details:   "user is not allowed to execute the action on this resource",
+			Details:   "user_id must be the same as in Bearer token",
 		}
 	}
 

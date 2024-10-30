@@ -71,8 +71,8 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("GET /api/v1/users/me/answers", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetAnswersQuery, responses.BuildDefaultResponse[models.Answer]), db)))
 	mux.Handle("GET /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get(db, queries.GetAnswerQuery, responses.BuildDefaultResponse[models.Answer]), db)))
 	mux.Handle("POST /api/v1/users/me/answers", m.ErrorsMiddleware(m.UserOnly(controllers.Create[models.Answer](db, responses.BuildDefaultResponse), db)))
-	mux.Handle("PUT /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Update[models.Answer](db, queries.DefaultUpdateQuery, responses.BuildDefaultResponse), db)))
-	mux.Handle("DELETE /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Delete[models.Answer](db, queries.GetByIdQuery), db)))
+	mux.Handle("PUT /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Update[models.Answer](db, queries.UpdateAnswerQuery, responses.BuildDefaultResponse), db)))
+	mux.Handle("DELETE /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Delete[models.Answer](db, queries.GetAnswerQuery), db)))
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		response := utils.ErrorsResponse{

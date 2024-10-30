@@ -19,7 +19,11 @@ func GetByIdQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 }
 
 func DefaultUpdateQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	return GetByIdQuery(db, r).Select("*").Omit("id", "created_at")
+	return baseUpdateQuery(GetByIdQuery(db, r))
+}
+
+func baseUpdateQuery(db *gorm.DB) *gorm.DB {
+	return db.Select("*").Omit("id", "created_at")
 }
 
 func Paginate(db *gorm.DB, pageNo int, perPage int, orderBy string, orderDirection string) *gorm.DB {

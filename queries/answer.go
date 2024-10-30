@@ -27,6 +27,10 @@ func GetAnswerQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	return db.Scopes(queryFunctions...)
 }
 
+func UpdateAnswerQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	return baseUpdateQuery(GetAnswerQuery(db, r))
+}
+
 func onlyCurrentUserRecords(r *http.Request) func(db *gorm.DB) *gorm.DB {
 	currentUser := r.Context().Value(utils.UserContextKey).(models.User)
 	return func(db *gorm.DB) *gorm.DB {
