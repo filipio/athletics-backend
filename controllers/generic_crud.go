@@ -97,7 +97,7 @@ func Create[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildRe
 }
 
 // todo: restrict to only given query
-func Update[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func Update[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			record, err := utils.Decode[T](r)
@@ -106,8 +106,9 @@ func Update[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildRe
 				return err
 			}
 
-			id := utils.IntPathValue(r, "id")
-			queryResult := db.Model(&record).Where("id = ?", id).Select("*").Omit("id", "created_at").Updates(&record)
+			baseQuery := db.Model(&record)
+			query := buildQuery(baseQuery, r)
+			queryResult := query.Updates(&record)
 
 			if queryResult.Error != nil {
 				return queryResult.Error
@@ -117,6 +118,7 @@ func Update[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildRe
 				return utils.RecordNotFoundError{}
 			}
 
+			id := utils.IntPathValue(r, "id")
 			db.First(&record, id)
 			response := buildResponse(record)
 
@@ -129,13 +131,13 @@ func Update[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildRe
 }
 
 // todo: restrict to only given query
-func Delete[T utils.DbModel](db *gorm.DB) utils.HandlerWithError {
+func Delete[T utils.DbModel](db *gorm.DB, buildQuery queries.BuildQueryFunc) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			var record T
-			id := utils.IntPathValue(r, "id")
 
-			queryResult := db.Delete(&record, id)
+			query := buildQuery(db, r)
+			queryResult := query.Delete(&record)
 
 			if queryResult.Error != nil {
 				return queryResult.Error

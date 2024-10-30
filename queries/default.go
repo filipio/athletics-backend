@@ -18,6 +18,10 @@ func GetByIdQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	return db.Where("id = ?", id)
 }
 
+func DefaultUpdateQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	return GetByIdQuery(db, r).Select("*").Omit("id", "created_at")
+}
+
 func Paginate(db *gorm.DB, pageNo int, perPage int, orderBy string, orderDirection string) *gorm.DB {
 	return db.Offset((pageNo - 1) * perPage).Limit(perPage).Order(orderBy + " " + orderDirection)
 }
