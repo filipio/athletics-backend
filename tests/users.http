@@ -7,11 +7,11 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "email": "foobar2@gmail.com",
+    "email": "foobar23@gmail.com",
     "password": "fofofofo",
     "roles": [
         {
-            "id": 1,
+            "id": 3,
             "name": "admin"
         }
     ]
