@@ -7,7 +7,7 @@ import (
 )
 
 func GetQuestionsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	queryFunctions := []func(db *gorm.DB) *gorm.DB{}
+	queryFunctions := []func(db *gorm.DB) *gorm.DB{getByIds(r)}
 	queryParams := r.URL.Query()
 
 	if queryParams.Has("event_id") {

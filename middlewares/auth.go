@@ -23,6 +23,10 @@ func UserOnly(next utils.HandlerWithError, db *gorm.DB) utils.HandlerWithError {
 	return authMiddleware(next, utils.UserRole, db)
 }
 
+func OrganizerOnly(next utils.HandlerWithError, db *gorm.DB) utils.HandlerWithError {
+	return authMiddleware(next, utils.OrganizerRole, db)
+}
+
 func authMiddleware(next utils.HandlerWithError, requiredRole string, db *gorm.DB) utils.HandlerWithError {
 	return utils.HandlerWithError(func(w http.ResponseWriter, r *http.Request) error {
 		tokenString, extractionError := extractToken(r)

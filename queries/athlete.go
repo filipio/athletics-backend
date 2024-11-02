@@ -10,7 +10,7 @@ import (
 func GetAthletesQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	db = db.Preload("Disciplines")
 
-	queryFunctions := []func(db *gorm.DB) *gorm.DB{}
+	queryFunctions := []func(db *gorm.DB) *gorm.DB{getByIds(r)}
 	queryParams := r.URL.Query()
 
 	if queryParams.Has("search") {

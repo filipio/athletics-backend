@@ -7,7 +7,7 @@ import (
 )
 
 func GetEventsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	queryFunctions := []func(db *gorm.DB) *gorm.DB{}
+	queryFunctions := []func(db *gorm.DB) *gorm.DB{getByIds(r)}
 	queryParams := r.URL.Query()
 
 	if queryParams.Get("active") == "true" {

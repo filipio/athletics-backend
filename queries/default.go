@@ -29,3 +29,19 @@ func baseUpdateQuery(db *gorm.DB) *gorm.DB {
 func Paginate(db *gorm.DB, pageNo int, perPage int, orderBy string, orderDirection string) *gorm.DB {
 	return db.Offset((pageNo - 1) * perPage).Limit(perPage).Order(orderBy + " " + orderDirection)
 }
+
+func doNothing(db *gorm.DB) *gorm.DB {
+	return db
+}
+
+func getByIds(r *http.Request) func(db *gorm.DB) *gorm.DB {
+	queryParams := r.URL.Query()
+	if queryParams.Has("ids") {
+		ids := queryParams.Get("ids")
+		return func(db *gorm.DB) *gorm.DB {
+			return db.Where("id in (?)", ids)
+		}
+	}
+
+	return doNothing
+}
