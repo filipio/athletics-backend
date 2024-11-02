@@ -61,16 +61,34 @@ func ValidationErrorDetails(errors validator.ValidationErrors) []ValidationRespo
 	return details
 }
 
+func JsonDecodeErrorDetails(err JwtDecodeError) []ValidationResponseItem {
+	errPath := toSnakeCase(strings.Split(err.FieldPath, "."))
+	errorMessage := fmt.Sprintf("must be of type %s", err.DesiredType)
+
+	return []ValidationResponseItem{
+		{
+			ErrorsResponse: ErrorsResponse{
+				ErrorType: "invalid_type_error",
+				Details:   errorMessage,
+			},
+			Path: errPath,
+		}}
+}
+
 func buildErrorPath(errorNamespace string) []string {
 	namespaceParts := strings.Split(errorNamespace, ".")
 	pathElements := namespaceParts[1:]
 
-	pathElementsSnakeCased := make([]string, len(pathElements))
-	for i, element := range pathElements {
-		pathElementsSnakeCased[i] = strcase.ToSnake(element)
+	return toSnakeCase(pathElements)
+}
+
+func toSnakeCase(arr []string) []string {
+	snakeCased := make([]string, len(arr))
+	for i, element := range arr {
+		snakeCased[i] = strcase.ToSnake(element)
 	}
 
-	return pathElementsSnakeCased
+	return snakeCased
 }
 
 // defines the mapping between the error tag (used in models 'validate' tag)

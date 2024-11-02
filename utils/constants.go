@@ -2,6 +2,7 @@ package utils
 
 const AdminRole = "admin"
 const UserRole = "user"
+const OrganizerRole = "organizer"
 
 const UserContextKey = 0
 

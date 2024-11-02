@@ -18,6 +18,13 @@ func ErrorsMiddleware(next utils.HandlerWithError) http.Handler {
 
 // based on error type, builds map for response
 func errorResponse(err error) (httpStatus int, errorResponse utils.ErrorsResponse) {
+	if err, ok := err.(utils.JwtDecodeError); ok {
+		return http.StatusBadRequest, utils.ErrorsResponse{
+			ErrorType: "validation_error",
+			Details:   utils.JsonDecodeErrorDetails(err),
+		}
+	}
+
 	if err, ok := err.(validator.ValidationErrors); ok {
 		return http.StatusBadRequest, utils.ErrorsResponse{
 			ErrorType: "validation_error",

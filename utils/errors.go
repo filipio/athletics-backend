@@ -51,3 +51,9 @@ type JwtTokenParsingError struct {
 type InvalidUserError struct {
 	AppError
 }
+
+type JwtDecodeError struct {
+	AppError
+	FieldPath   string
+	DesiredType string
+}

@@ -86,9 +86,11 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 func seed(db *gorm.DB) {
 	adminRole := models.Role{Name: utils.AdminRole}
 	userRole := models.Role{Name: utils.UserRole}
+	organizerRole := models.Role{Name: utils.OrganizerRole}
 
-	db.FirstOrCreate(&adminRole, models.Role{Name: utils.AdminRole})
-	db.FirstOrCreate(&userRole, models.Role{Name: utils.UserRole})
+	db.FirstOrCreate(&adminRole, adminRole)
+	db.FirstOrCreate(&userRole, userRole)
+	db.FirstOrCreate(&organizerRole, organizerRole)
 
 	adminEmail := os.Getenv("ADMIN_EMAIL")
 	adminPassword := os.Getenv("ADMIN_PASSWORD")

@@ -74,6 +74,13 @@ func Decode[T DbModel](r *http.Request) (T, error) {
 	var record T
 
 	if err := json.NewDecoder(r.Body).Decode(&record); err != nil {
+		if err, ok := err.(*json.UnmarshalTypeError); ok {
+			return record, JwtDecodeError{
+				FieldPath:   err.Field,
+				DesiredType: err.Type.String(),
+			}
+		}
+
 		return record, fmt.Errorf("decode json: %w", err)
 	}
 

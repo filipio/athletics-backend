@@ -1,0 +1,18 @@
+@base_url = http://localhost:8080
+@resource_name = users
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzI5ODE3NDIsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.KV_jnHhrvPtSFgL8GlTH30xKPUtcbryJmBnQlSQtlJU
+
+POST {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "email": "foobar2@gmail.com",
+    "password": "fofofofo",
+    "roles": [
+        {
+            "id": 1,
+            "name": "admin"
+        }
+    ]
+}
