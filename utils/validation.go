@@ -61,15 +61,14 @@ func ValidationErrorDetails(errors validator.ValidationErrors) []ValidationRespo
 	return details
 }
 
-func JsonDecodeErrorDetails(err JwtDecodeError) []ValidationResponseItem {
+func AppValidationErrorDetails(err AppValidationError) []ValidationResponseItem {
 	errPath := toSnakeCase(strings.Split(err.FieldPath, "."))
-	errorMessage := fmt.Sprintf("must be of type %s", err.DesiredType)
 
 	return []ValidationResponseItem{
 		{
 			ErrorsResponse: ErrorsResponse{
-				ErrorType: "invalid_type_error",
-				Details:   errorMessage,
+				ErrorType: "validation_error",
+				Details:   err.Message,
 			},
 			Path: errPath,
 		}}

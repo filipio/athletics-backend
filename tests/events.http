@@ -1,0 +1,19 @@
+@base_url = http://localhost:8080
+@resource_name = events
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzMzMzEzMjYsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.zjVy6iZn6taW_en-uGAZ2-Hdo86Luf0TjVv8zktvJQI
+
+###
+
+GET {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+
+POST {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "olimpiada",
+    "deadline": "2023-12-05T00:00:00Z"
+}

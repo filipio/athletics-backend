@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"gorm.io/gorm"
 )
 
 type HandlerWithError func(http.ResponseWriter, *http.Request) error
@@ -70,14 +72,16 @@ func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) erro
 	return nil
 }
 
-func Decode[T DbModel](r *http.Request) (T, error) {
+func DecodeAndValidate[T DbModel](r *http.Request) (T, error) {
 	var record T
 
 	if err := json.NewDecoder(r.Body).Decode(&record); err != nil {
 		if err, ok := err.(*json.UnmarshalTypeError); ok {
-			return record, JwtDecodeError{
-				FieldPath:   err.Field,
-				DesiredType: err.Type.String(),
+			return record, AppValidationError{
+				FieldPath: err.Field,
+				AppError: AppError{
+					Message: fmt.Sprintf("must be of type %s", err.Type.String()),
+				},
 			}
 		}
 
@@ -94,4 +98,8 @@ func Decode[T DbModel](r *http.Request) (T, error) {
 	}
 
 	return record, nil
+}
+
+func Db(r *http.Request) *gorm.DB {
+	return r.Context().Value(DbContextKey).(*gorm.DB)
 }

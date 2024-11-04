@@ -17,7 +17,7 @@ const jwtTokenExpiration = time.Hour * 24 * 30
 func Register(db *gorm.DB) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			user, err := utils.Decode[models.User](r)
+			user, err := utils.DecodeAndValidate[models.User](r)
 
 			if err != nil {
 				return err
@@ -56,7 +56,7 @@ func Register(db *gorm.DB) utils.HandlerWithError {
 func Login(db *gorm.DB) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			bodyUser, decodeErr := utils.Decode[models.User](r)
+			bodyUser, decodeErr := utils.DecodeAndValidate[models.User](r)
 
 			if decodeErr != nil {
 				return decodeErr

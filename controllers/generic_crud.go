@@ -73,7 +73,7 @@ func Get[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc,
 func Create[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			record, err := utils.Decode[T](r)
+			record, err := utils.DecodeAndValidate[T](r)
 
 			if err != nil {
 				return err
@@ -100,7 +100,7 @@ func Create[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildRe
 func Update[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			record, err := utils.Decode[T](r)
+			record, err := utils.DecodeAndValidate[T](r)
 
 			if err != nil {
 				return err

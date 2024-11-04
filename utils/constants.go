@@ -4,7 +4,10 @@ const AdminRole = "admin"
 const UserRole = "user"
 const OrganizerRole = "organizer"
 
-const UserContextKey = 0
+type ContextKey uint
+
+const UserContextKey = ContextKey(0)
+const DbContextKey = ContextKey(1)
 
 const DefaultPageSize = 20
 const DefaultPageNumber = 1

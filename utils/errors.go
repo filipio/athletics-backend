@@ -52,8 +52,7 @@ type InvalidUserError struct {
 	AppError
 }
 
-type JwtDecodeError struct {
+type AppValidationError struct {
 	AppError
-	FieldPath   string
-	DesiredType string
+	FieldPath string
 }

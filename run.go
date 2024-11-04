@@ -167,6 +167,7 @@ func newServerHandler(db *gorm.DB) http.Handler {
 	addRoutes(mux, db)
 
 	var handler http.Handler = mux
+	handler = m.DbMiddleware(handler, db)
 	handler = m.LoggingMiddleware(handler)
 
 	return handler

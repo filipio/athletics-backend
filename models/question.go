@@ -3,7 +3,9 @@ package models
 import (
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/filipio/athletics-backend/utils"
 	"gorm.io/datatypes"
 )
 
@@ -18,5 +20,16 @@ type Question struct {
 
 func (m Question) Validate(r *http.Request) error {
 	fmt.Println("questions validation is executed")
+
+	db := utils.Db(r)
+	var event Event
+	db.First(&event, m.EventID)
+
+	if event.Deadline.Before(time.Now().UTC()) {
+		return utils.AppValidationError{
+			FieldPath: "event_id",
+			AppError:  utils.AppError{Message: "event is already closed"},
+		}
+	}
 	return nil
 }
