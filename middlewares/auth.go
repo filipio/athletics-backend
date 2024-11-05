@@ -15,19 +15,19 @@ import (
 	"gorm.io/gorm"
 )
 
-func AdminOnly(next utils.HandlerWithError, db *gorm.DB) utils.HandlerWithError {
-	return authMiddleware(next, utils.AdminRole, db)
+func AdminOnly(next utils.HandlerWithError) utils.HandlerWithError {
+	return authMiddleware(next, utils.AdminRole)
 }
 
-func UserOnly(next utils.HandlerWithError, db *gorm.DB) utils.HandlerWithError {
-	return authMiddleware(next, utils.UserRole, db)
+func UserOnly(next utils.HandlerWithError) utils.HandlerWithError {
+	return authMiddleware(next, utils.UserRole)
 }
 
-func OrganizerOnly(next utils.HandlerWithError, db *gorm.DB) utils.HandlerWithError {
-	return authMiddleware(next, utils.OrganizerRole, db)
+func OrganizerOnly(next utils.HandlerWithError) utils.HandlerWithError {
+	return authMiddleware(next, utils.OrganizerRole)
 }
 
-func authMiddleware(next utils.HandlerWithError, requiredRole string, db *gorm.DB) utils.HandlerWithError {
+func authMiddleware(next utils.HandlerWithError, requiredRole string) utils.HandlerWithError {
 	return utils.HandlerWithError(func(w http.ResponseWriter, r *http.Request) error {
 		tokenString, extractionError := extractToken(r)
 
@@ -55,7 +55,7 @@ func authMiddleware(next utils.HandlerWithError, requiredRole string, db *gorm.D
 			return utils.ActionForbiddenError{}
 		}
 
-		clientContext, err := buildClientContext(r, claims, db)
+		clientContext, err := buildClientContext(r, claims, models.Db(r))
 		if err != nil {
 			return err
 		}

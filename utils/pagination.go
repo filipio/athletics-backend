@@ -1,4 +1,4 @@
-package responses
+package utils
 
 type PaginationInfo struct {
 	Count            int  `json:"count"`

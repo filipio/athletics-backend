@@ -1,6 +1,9 @@
 package models
 
 import (
+	"net/http"
+	"time"
+
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -21,4 +24,35 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 
 	u.Password = string(hashedPasswordBytes)
 	return nil
+}
+
+func GetUsersQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	return db.Preload("Roles")
+}
+
+func GetUserQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	return GetByIdQuery(db.Preload("Roles"), r)
+}
+
+type UserResponse struct {
+	ID        uint      `json:"id"`
+	Email     string    `json:"email"`
+	Roles     []string  `json:"roles"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func BuildUserResponse(model User) UserResponse {
+	roles := make([]string, len(model.Roles))
+	for i, role := range model.Roles {
+		roles[i] = role.Name
+	}
+
+	return UserResponse{
+		ID:        model.ID,
+		Email:     model.Email,
+		Roles:     roles,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
+	}
 }

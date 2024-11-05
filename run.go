@@ -11,77 +11,14 @@ import (
 	"time"
 
 	"github.com/filipio/athletics-backend/config"
-	"github.com/filipio/athletics-backend/controllers"
 	m "github.com/filipio/athletics-backend/middlewares"
 	"github.com/filipio/athletics-backend/models"
-	queries "github.com/filipio/athletics-backend/queries"
-	"github.com/filipio/athletics-backend/responses"
 	"github.com/filipio/athletics-backend/utils"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
 const shutdownTimeout = 10 * time.Second
-
-func addRoutes(mux *http.ServeMux, db *gorm.DB) {
-	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
-	mux.HandleFunc("GET /api/readyz", func(w http.ResponseWriter, r *http.Request) {
-		result := db.Exec("SELECT 1")
-		if result.Error != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(result.Error.Error()))
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-	})
-
-	mux.Handle("GET /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetPokemonsQuery, responses.BuildDefaultResponse[models.Pokemon]), db)))
-	mux.Handle("GET /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Get(db, queries.GetByIdQuery, responses.BuildDefaultResponse[models.Pokemon])))
-	mux.Handle("POST /api/v1/pokemons", m.ErrorsMiddleware(m.UserOnly(controllers.Create[models.Pokemon](db, responses.BuildDefaultResponse), db)))
-	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon](db, queries.DefaultUpdateQuery, responses.BuildDefaultResponse)))
-	mux.Handle("DELETE /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Delete[models.Pokemon](db, queries.GetByIdQuery)))
-
-	mux.Handle("POST /api/v1/register", m.ErrorsMiddleware(controllers.Register(db)))
-	mux.Handle("POST /api/v1/login", m.ErrorsMiddleware(controllers.Login(db)))
-
-	mux.Handle("GET /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.GetAll(db, queries.GetUsersQuery, responses.BuildUserResponse), db)))
-	mux.Handle("GET /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Get(db, queries.GetUserQuery, responses.BuildUserResponse), db)))
-	mux.Handle("POST /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.Create(db, responses.BuildUserResponse), db)))
-	mux.Handle("PUT /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Update(db, queries.DefaultUpdateQuery, responses.BuildUserResponse), db)))
-	mux.Handle("DELETE /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Delete[models.User](db, queries.GetByIdQuery), db)))
-
-	mux.Handle("GET /api/v1/athletes", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetAthletesQuery, responses.BuildAthleteResponse), db)))
-	mux.Handle("GET /api/v1/athletes/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get(db, queries.GetByIdQuery, responses.BuildAthleteResponse), db)))
-
-	mux.Handle("GET /api/v1/disciplines", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.DefaultQuery, responses.BuildDisciplineResponse), db)))
-	mux.Handle("GET /api/v1/disciplines/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get(db, queries.GetByIdQuery, responses.BuildDisciplineResponse), db)))
-
-	mux.Handle("GET /api/v1/events", m.ErrorsMiddleware(m.OrganizerOnly(controllers.GetAll(db, queries.GetEventsQuery, responses.BuildDefaultResponse[models.Event]), db)))
-	mux.Handle("GET /api/v1/events/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Get(db, queries.GetByIdQuery, responses.BuildDefaultResponse[models.Event]), db)))
-	mux.Handle("POST /api/v1/events", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Create[models.Event](db, responses.BuildDefaultResponse), db)))
-	mux.Handle("PUT /api/v1/events/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Update[models.Event](db, queries.DefaultUpdateQuery, responses.BuildDefaultResponse), db)))
-	mux.Handle("DELETE /api/v1/events/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Delete[models.Event](db, queries.GetByIdQuery), db)))
-
-	mux.Handle("GET /api/v1/questions", m.ErrorsMiddleware(m.OrganizerOnly(controllers.GetAll(db, queries.GetQuestionsQuery, responses.BuildDefaultResponse[models.Question]), db)))
-	mux.Handle("GET /api/v1/questions/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Get(db, queries.GetByIdQuery, responses.BuildDefaultResponse[models.Question]), db)))
-	mux.Handle("POST /api/v1/questions", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Create[models.Question](db, responses.BuildDefaultResponse), db)))
-	mux.Handle("PUT /api/v1/questions/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Update[models.Question](db, queries.DefaultUpdateQuery, responses.BuildDefaultResponse), db)))
-	mux.Handle("DELETE /api/v1/questions/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Delete[models.Question](db, queries.GetByIdQuery), db)))
-
-	mux.Handle("GET /api/v1/users/me/answers", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll(db, queries.GetAnswersQuery, responses.BuildDefaultResponse[models.Answer]), db)))
-	mux.Handle("GET /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get(db, queries.GetAnswerQuery, responses.BuildDefaultResponse[models.Answer]), db)))
-	mux.Handle("POST /api/v1/users/me/answers", m.ErrorsMiddleware(m.UserOnly(controllers.Create[models.Answer](db, responses.BuildDefaultResponse), db)))
-	mux.Handle("PUT /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Update[models.Answer](db, queries.UpdateAnswerQuery, responses.BuildDefaultResponse), db)))
-	mux.Handle("DELETE /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Delete[models.Answer](db, queries.GetAnswerQuery), db)))
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		response := utils.ErrorsResponse{
-			ErrorType: "not_found_error",
-			Details:   "path not found",
-		}
-		utils.Encode(w, r, http.StatusNotFound, response)
-	})
-}
 
 func seed(db *gorm.DB) {
 	adminRole := models.Role{Name: utils.AdminRole}

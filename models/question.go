@@ -7,6 +7,7 @@ import (
 
 	"github.com/filipio/athletics-backend/utils"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type Question struct {
@@ -21,7 +22,7 @@ type Question struct {
 func (m Question) Validate(r *http.Request) error {
 	fmt.Println("questions validation is executed")
 
-	db := utils.Db(r)
+	db := Db(r)
 	var event Event
 	db.First(&event, m.EventID)
 
@@ -32,4 +33,18 @@ func (m Question) Validate(r *http.Request) error {
 		}
 	}
 	return nil
+}
+
+func GetQuestionsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	queryFunctions := []func(db *gorm.DB) *gorm.DB{getByIds(r)}
+	queryParams := r.URL.Query()
+
+	if queryParams.Has("event_id") {
+		eventId := queryParams.Get("event_id")
+		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
+			return db.Where("event_id = ?", eventId)
+		})
+	}
+
+	return db.Scopes(queryFunctions...)
 }

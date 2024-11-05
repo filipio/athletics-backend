@@ -3,20 +3,19 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/filipio/athletics-backend/queries"
-	"github.com/filipio/athletics-backend/responses"
+	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
-	"gorm.io/gorm"
 )
 
-func GetAll[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func GetAll[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
+			db := models.Db(r)
 			var records []T
 
 			query := buildQuery(db, r)
 			pageNo, perPage, orderBy, orderDirection := utils.PaginationParams(r)
-			queryResult := queries.Paginate(query, pageNo, perPage, orderBy, orderDirection).Find(&records)
+			queryResult := models.Paginate(query, pageNo, perPage, orderBy, orderDirection).Find(&records)
 
 			if queryResult.Error != nil {
 				return queryResult.Error
@@ -34,7 +33,7 @@ func GetAll[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFu
 				responseRecords = append(responseRecords, buildResponse(record))
 			}
 
-			paginatedResponse := responses.BuildPaginatedResponse(responseRecords, totalCount, pageNo, perPage)
+			paginatedResponse := utils.BuildPaginatedResponse(responseRecords, totalCount, pageNo, perPage)
 			if err := utils.Encode(w, r, http.StatusOK, paginatedResponse); err != nil {
 				return err
 			}
@@ -43,9 +42,10 @@ func GetAll[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFu
 		})
 }
 
-func Get[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func Get[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
+			db := models.Db(r)
 			var record T
 
 			query := buildQuery(db, r)
@@ -70,9 +70,10 @@ func Get[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc,
 		})
 }
 
-func Create[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func Create[T utils.DbModel, V any](buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
+			db := models.Db(r)
 			record, err := utils.DecodeAndValidate[T](r)
 
 			if err != nil {
@@ -97,9 +98,10 @@ func Create[T utils.DbModel, V any](db *gorm.DB, buildResponse responses.BuildRe
 }
 
 // todo: restrict to only given query
-func Update[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFunc, buildResponse responses.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func Update[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
+			db := models.Db(r)
 			record, err := utils.DecodeAndValidate[T](r)
 
 			if err != nil {
@@ -131,9 +133,10 @@ func Update[T utils.DbModel, V any](db *gorm.DB, buildQuery queries.BuildQueryFu
 }
 
 // todo: restrict to only given query
-func Delete[T utils.DbModel](db *gorm.DB, buildQuery queries.BuildQueryFunc) utils.HandlerWithError {
+func Delete[T utils.DbModel](buildQuery models.BuildQueryFunc) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
+			db := models.Db(r)
 			var record T
 
 			query := buildQuery(db, r)

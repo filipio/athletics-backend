@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-
-	"gorm.io/gorm"
 )
 
 type HandlerWithError func(http.ResponseWriter, *http.Request) error
@@ -98,8 +96,4 @@ func DecodeAndValidate[T DbModel](r *http.Request) (T, error) {
 	}
 
 	return record, nil
-}
-
-func Db(r *http.Request) *gorm.DB {
-	return r.Context().Value(DbContextKey).(*gorm.DB)
 }
