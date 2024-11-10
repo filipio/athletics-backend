@@ -8,6 +8,7 @@ type ContextKey uint
 
 const UserContextKey = ContextKey(0)
 const DbContextKey = ContextKey(1)
+const WorkersContextKey = ContextKey(2)
 
 const DefaultPageSize = 20
 const DefaultPageNumber = 1

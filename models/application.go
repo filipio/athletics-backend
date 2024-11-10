@@ -1,7 +1,7 @@
 package models
 
 import (
-	"fmt"
+	"context"
 	"net/http"
 	"time"
 
@@ -22,7 +22,30 @@ func (m AppModel) GetID() uint {
 
 // used for custom validation logic, which can't be defined in the struct tags
 func (m AppModel) Validate(r *http.Request) error {
-	fmt.Println("validating itself!")
+	return nil
+}
+
+func (m AppModel) BeforeCreateCtx(ctx context.Context, tx *gorm.DB) error {
+	return nil
+}
+
+func (m AppModel) AfterCreateCtx(ctx context.Context, tx *gorm.DB) error {
+	return nil
+}
+
+func (m AppModel) BeforeUpdateCtx(ctx context.Context, tx *gorm.DB) error {
+	return nil
+}
+
+func (m AppModel) AfterUpdateCtx(ctx context.Context, tx *gorm.DB) error {
+	return nil
+}
+
+func (m AppModel) BeforeDeleteCtx(ctx context.Context, tx *gorm.DB) error {
+	return nil
+}
+
+func (m AppModel) AfterDeleteCtx(ctx context.Context, tx *gorm.DB) error {
 	return nil
 }
 
@@ -43,7 +66,7 @@ func DefaultUpdateQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 }
 
 func baseUpdateQuery(db *gorm.DB) *gorm.DB {
-	return db.Select("*").Omit("id", "created_at")
+	return db.Omit("id", "created_at")
 }
 
 func Paginate(db *gorm.DB, pageNo int, perPage int, orderBy string, orderDirection string) *gorm.DB {

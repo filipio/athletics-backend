@@ -14,7 +14,9 @@ import (
 	m "github.com/filipio/athletics-backend/middlewares"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
+	"github.com/filipio/athletics-backend/workers"
 	"github.com/joho/godotenv"
+	"github.com/riverqueue/river"
 	"gorm.io/gorm"
 )
 
@@ -43,6 +45,16 @@ func seed(db *gorm.DB) {
 	}
 }
 
+// the only function to be used in order to add new workers
+func appWorkers() *river.Workers {
+	riverWorkers := river.NewWorkers()
+
+	river.AddWorker(riverWorkers, &workers.SortWorker{})
+	river.AddWorker(riverWorkers, &workers.PokemonWorker{})
+
+	return riverWorkers
+}
+
 func Run(ctx context.Context, envPath string) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
@@ -64,9 +76,12 @@ func Run(ctx context.Context, envPath string) error {
 
 	utils.RegisterValidations(db)
 
+	workersClient := config.SetupWorkersClient(ctx, db, appWorkers())
+	log.Print("started workers client")
+
 	port := os.Getenv("PORT")
 	addr := fmt.Sprintf(":%s", port)
-	handler := newServerHandler(db)
+	handler := newServerHandler(db, workersClient.InsertClient)
 	httpServer := &http.Server{
 		Addr:    addr,
 		Handler: handler,
@@ -88,23 +103,33 @@ func Run(ctx context.Context, envPath string) error {
 		<-ctx.Done()
 		// make a new context for the Shutdown
 		shutdownCtx := context.Background()
-		shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
-		defer cancel()
-		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		httpShutdownCtx, cancelHttp := context.WithTimeout(shutdownCtx, shutdownTimeout)
+		workersShutdownCtx, cancelWorkers := context.WithTimeout(shutdownCtx, shutdownTimeout)
+
+		defer cancelWorkers()
+		defer cancelHttp()
+
+		if err := workersClient.Shutdown(workersShutdownCtx); err != nil {
+			fmt.Fprintf(os.Stderr, "error shutting down workers client: %s\n", err)
+		}
+
+		if err := httpServer.Shutdown(httpShutdownCtx); err != nil {
 			fmt.Fprintf(os.Stderr, "error shutting down http server: %s\n", err)
 		}
+
 	}()
 
 	waitGroup.Wait()
 	return nil
 }
 
-func newServerHandler(db *gorm.DB) http.Handler {
+func newServerHandler(db *gorm.DB, insertClient *config.InsertWorkerClient) http.Handler {
 	mux := http.NewServeMux()
 	addRoutes(mux, db)
 
 	var handler http.Handler = mux
 	handler = m.DbMiddleware(handler, db)
+	handler = m.WorkersMiddleware(handler, insertClient)
 	handler = m.LoggingMiddleware(handler)
 
 	return handler

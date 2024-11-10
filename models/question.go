@@ -1,11 +1,14 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/utils"
+	"github.com/filipio/athletics-backend/workerargs"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -47,4 +50,12 @@ func GetQuestionsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	}
 
 	return db.Scopes(queryFunctions...)
+}
+
+func (m Question) BeforeUpdateCtx(ctx context.Context, tx *gorm.DB) error {
+	workersClient := ctx.Value(utils.WorkersContextKey).(*config.InsertWorkerClient)
+	if _, err := workersClient.InsertTx(tx, workerargs.SortArgs{Strings: []string{"h", "l", "o", "a"}}); err != nil {
+		return err
+	}
+	return nil
 }

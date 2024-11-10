@@ -5,6 +5,7 @@ import (
 
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
+	"gorm.io/gorm"
 )
 
 func GetAll[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
@@ -80,10 +81,22 @@ func Create[T utils.DbModel, V any](buildResponse models.BuildResponseFunc[T, V]
 				return err
 			}
 
-			queryResult := db.Create(&record)
+			if err := db.Transaction(func(tx *gorm.DB) error {
+				if err := record.BeforeCreateCtx(r.Context(), tx); err != nil {
+					return err
+				}
 
-			if queryResult.Error != nil {
-				return queryResult.Error
+				if err := tx.Create(&record).Error; err != nil {
+					return err
+				}
+
+				if err := record.AfterCreateCtx(r.Context(), tx); err != nil {
+					return err
+				}
+
+				return nil
+			}); err != nil {
+				return err
 			}
 
 			db.First(&record, record.GetID())
@@ -97,7 +110,6 @@ func Create[T utils.DbModel, V any](buildResponse models.BuildResponseFunc[T, V]
 		})
 }
 
-// todo: restrict to only given query
 func Update[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
@@ -110,14 +122,29 @@ func Update[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildRespo
 
 			baseQuery := db.Model(&record)
 			query := buildQuery(baseQuery, r)
-			queryResult := query.Updates(&record)
 
-			if queryResult.Error != nil {
-				return queryResult.Error
-			}
+			if err := db.Transaction(func(tx *gorm.DB) error {
+				if err := record.BeforeUpdateCtx(r.Context(), tx); err != nil {
+					return err
+				}
 
-			if queryResult.RowsAffected == 0 {
-				return utils.RecordNotFoundError{}
+				queryResult := query.Updates(&record)
+
+				if queryResult.Error != nil {
+					return err
+				}
+
+				if queryResult.RowsAffected == 0 {
+					return utils.RecordNotFoundError{}
+				}
+
+				if err := record.AfterUpdateCtx(r.Context(), tx); err != nil {
+					return err
+				}
+
+				return nil
+			}); err != nil {
+				return err
 			}
 
 			id := utils.IntPathValue(r, "id")
@@ -132,7 +159,6 @@ func Update[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildRespo
 		})
 }
 
-// todo: restrict to only given query
 func Delete[T utils.DbModel](buildQuery models.BuildQueryFunc) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
@@ -140,14 +166,29 @@ func Delete[T utils.DbModel](buildQuery models.BuildQueryFunc) utils.HandlerWith
 			var record T
 
 			query := buildQuery(db, r)
-			queryResult := query.Delete(&record)
 
-			if queryResult.Error != nil {
-				return queryResult.Error
-			}
+			if err := db.Transaction(func(tx *gorm.DB) error {
+				if err := record.BeforeDeleteCtx(r.Context(), tx); err != nil {
+					return err
+				}
 
-			if queryResult.RowsAffected == 0 {
-				return utils.RecordNotFoundError{}
+				queryResult := query.Delete(&record)
+
+				if queryResult.Error != nil {
+					return queryResult.Error
+				}
+
+				if queryResult.RowsAffected == 0 {
+					return utils.RecordNotFoundError{}
+				}
+
+				if err := record.AfterDeleteCtx(r.Context(), tx); err != nil {
+					return err
+				}
+
+				return nil
+			}); err != nil {
+				return err
 			}
 
 			if err := utils.Encode(w, r, http.StatusOK, utils.AnyMap{}); err != nil {

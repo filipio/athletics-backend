@@ -18,3 +18,16 @@ Authorization: Bearer {{token}}
     "content": "ktoto",
     "type": "athlete"
 }
+
+###
+
+PUT {{base_url}}/api/v1/{{resource_name}}/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "event_id": 1,
+    "content": "foobarbazz",
+    "type": "athlete",
+    "correct_answer": 123
+}
