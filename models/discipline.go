@@ -13,10 +13,10 @@ type DisciplineResponse struct {
 	Type string `json:"type"`
 }
 
-func BuildDisciplineResponse(model Discipline) DisciplineResponse {
+func (m Discipline) BuildResponse() any {
 	return DisciplineResponse{
-		ID:   model.ID,
-		Name: model.Name,
-		Type: model.Type,
+		ID:   m.ID,
+		Name: m.Name,
+		Type: m.Type,
 	}
 }

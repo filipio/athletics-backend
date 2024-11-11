@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -23,8 +22,6 @@ type Question struct {
 }
 
 func (m Question) Validate(r *http.Request) error {
-	fmt.Println("questions validation is executed")
-
 	db := Db(r)
 	var event Event
 	db.First(&event, m.EventID)
@@ -38,18 +35,15 @@ func (m Question) Validate(r *http.Request) error {
 	return nil
 }
 
-func GetQuestionsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	queryFunctions := []func(db *gorm.DB) *gorm.DB{getByIds(r)}
+func (m Question) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	db = getByIds(db, r)
 	queryParams := r.URL.Query()
 
 	if queryParams.Has("event_id") {
-		eventId := queryParams.Get("event_id")
-		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
-			return db.Where("event_id = ?", eventId)
-		})
+		db = db.Where("event_id = ?", queryParams.Get("event_id"))
 	}
 
-	return db.Scopes(queryFunctions...)
+	return db
 }
 
 func (m Question) BeforeUpdateCtx(ctx context.Context, tx *gorm.DB) error {
@@ -58,4 +52,8 @@ func (m Question) BeforeUpdateCtx(ctx context.Context, tx *gorm.DB) error {
 		return err
 	}
 	return nil
+}
+
+func (m Question) BuildResponse() any {
+	return m
 }

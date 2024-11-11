@@ -18,46 +18,41 @@ type Athlete struct {
 	Disciplines []Discipline    `json:"disciplines" gorm:"many2many:athletes_disciplines;constraint:OnDelete:CASCADE"`
 }
 
-func GetAthletesQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+func (m Athlete) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	db = db.Preload("Disciplines")
+	db = getByIds(db, r)
 
-	queryFunctions := []func(db *gorm.DB) *gorm.DB{getByIds(r)}
 	queryParams := r.URL.Query()
 
 	if queryParams.Has("search") {
 		searchTerm := "%" + strings.ToLower(queryParams.Get("search")) + "%"
-		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
-			return db.Where("first_name || ' ' || last_name LIKE ? OR last_name || ' ' || first_name LIKE ?", searchTerm, searchTerm)
-		})
+		db = db.Where("first_name || ' ' || last_name LIKE ? OR last_name || ' ' || first_name LIKE ?", searchTerm, searchTerm)
 	}
 
 	if queryParams.Has("discipline_ids") {
 		disciplineIds := strings.Split(queryParams.Get("discipline_ids"), ",")
 
-		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
-			return db.Joins("JOIN athletes_disciplines ON athletes_disciplines.athlete_id = athletes.id").
-				Where("athletes_disciplines.discipline_id IN (?)", disciplineIds)
-		})
+		db = db.Joins("JOIN athletes_disciplines ON athletes_disciplines.athlete_id = athletes.id").
+			Where("athletes_disciplines.discipline_id IN (?)", disciplineIds)
 	}
 
 	if queryParams.Has("country") {
 		country := strings.ToUpper(queryParams.Get("country"))
-		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
-			return db.Where("country = ?", country)
-		})
+		db = db.Where("country = ?", country)
 	}
 
 	if queryParams.Has("gender") {
 		gender := strings.ToLower(queryParams.Get("gender"))
-		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
-			return db.Where("gender = ?", gender)
-		})
+		db = db.Where("gender = ?", gender)
 	}
 
-	// below is the way to fetch the user from the context
-	// user := r.Context().Value(utils.UserContextKey).(models.User)
+	return db
+}
 
-	return db.Scopes(queryFunctions...)
+func (m Athlete) GetQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	db = db.Preload("Disciplines")
+	db = GetByIdQuery(db, r)
+	return db
 }
 
 type AthleteResponse struct {
@@ -69,17 +64,17 @@ type AthleteResponse struct {
 	Disciplines []string `json:"disciplines"`
 }
 
-func BuildAthleteResponse(model Athlete) AthleteResponse {
-	disciplines := make([]string, len(model.Disciplines))
-	for i, discipline := range model.Disciplines {
+func (m Athlete) BuildResponse() any {
+	disciplines := make([]string, len(m.Disciplines))
+	for i, discipline := range m.Disciplines {
 		disciplines[i] = discipline.Name
 	}
 	athleteResponse := AthleteResponse{
-		ID:          model.ID,
-		FirstName:   model.FirstName,
-		LastName:    model.LastName,
-		Gender:      model.Gender,
-		Country:     model.Country,
+		ID:          m.ID,
+		FirstName:   m.FirstName,
+		LastName:    m.LastName,
+		Gender:      m.Gender,
+		Country:     m.Country,
 		Disciplines: disciplines,
 	}
 

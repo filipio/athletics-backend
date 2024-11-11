@@ -11,11 +11,11 @@ import (
 )
 
 var db *gorm.DB
-var once sync.Once
+var dbOnce sync.Once
 
 func DatabaseConnection() *gorm.DB {
 
-	once.Do(func() {
+	dbOnce.Do(func() {
 		dbInstance, err := gorm.Open(postgres.New(postgres.Config{
 			DSN:                  dsn(),
 			PreferSimpleProtocol: true, // disables implicit prepared statement usage

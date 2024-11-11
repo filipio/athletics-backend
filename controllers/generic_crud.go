@@ -8,13 +8,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetAll[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func GetAll[T utils.DbModel]() utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			db := models.Db(r)
 			var records []T
+			var instance T
 
-			query := buildQuery(db, r)
+			query := instance.GetAllQuery(db, r)
 			pageNo, perPage, orderBy, orderDirection := utils.PaginationParams(r)
 			queryResult := models.Paginate(query, pageNo, perPage, orderBy, orderDirection).Find(&records)
 
@@ -22,16 +23,15 @@ func GetAll[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildRespo
 				return queryResult.Error
 			}
 
-			var instance T
 			var totalCount int64
-			totalCountResult := buildQuery(db.Model(&instance), r).Count(&totalCount)
+			totalCountResult := instance.GetAllQuery(db.Model(&instance), r).Count(&totalCount)
 			if totalCountResult.Error != nil {
 				return totalCountResult.Error
 			}
 
-			var responseRecords []V = []V{}
+			var responseRecords []any = []any{}
 			for _, record := range records {
-				responseRecords = append(responseRecords, buildResponse(record))
+				responseRecords = append(responseRecords, record.BuildResponse())
 			}
 
 			paginatedResponse := utils.BuildPaginatedResponse(responseRecords, totalCount, pageNo, perPage)
@@ -43,13 +43,13 @@ func GetAll[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildRespo
 		})
 }
 
-func Get[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func Get[T utils.DbModel]() utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			db := models.Db(r)
 			var record T
 
-			query := buildQuery(db, r)
+			query := record.GetQuery(db, r)
 			queryResult := query.First(&record)
 
 			if queryResult.Error != nil {
@@ -60,7 +60,7 @@ func Get[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse
 				}
 			}
 
-			response := buildResponse(record)
+			response := record.BuildResponse()
 
 			if err := utils.Encode(w, r, http.StatusOK, response); err != nil {
 				return err
@@ -71,7 +71,7 @@ func Get[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse
 		})
 }
 
-func Create[T utils.DbModel, V any](buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func Create[T utils.DbModel]() utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			db := models.Db(r)
@@ -100,7 +100,7 @@ func Create[T utils.DbModel, V any](buildResponse models.BuildResponseFunc[T, V]
 			}
 
 			db.First(&record, record.GetID())
-			response := buildResponse(record)
+			response := record.BuildResponse()
 
 			if err := utils.Encode(w, r, http.StatusOK, response); err != nil {
 				return err
@@ -110,7 +110,7 @@ func Create[T utils.DbModel, V any](buildResponse models.BuildResponseFunc[T, V]
 		})
 }
 
-func Update[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildResponse models.BuildResponseFunc[T, V]) utils.HandlerWithError {
+func Update[T utils.DbModel]() utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			db := models.Db(r)
@@ -121,7 +121,7 @@ func Update[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildRespo
 			}
 
 			baseQuery := db.Model(&record)
-			query := buildQuery(baseQuery, r)
+			query := record.UpdateQuery(baseQuery, r)
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
 				if err := record.BeforeUpdateCtx(r.Context(), tx); err != nil {
@@ -149,7 +149,7 @@ func Update[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildRespo
 
 			id := utils.IntPathValue(r, "id")
 			db.First(&record, id)
-			response := buildResponse(record)
+			response := record.BuildResponse()
 
 			if err := utils.Encode(w, r, http.StatusOK, response); err != nil {
 				return err
@@ -159,13 +159,13 @@ func Update[T utils.DbModel, V any](buildQuery models.BuildQueryFunc, buildRespo
 		})
 }
 
-func Delete[T utils.DbModel](buildQuery models.BuildQueryFunc) utils.HandlerWithError {
+func Delete[T utils.DbModel]() utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			db := models.Db(r)
 			var record T
 
-			query := buildQuery(db, r)
+			query := record.DeleteQuery(db, r)
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
 				if err := record.BeforeDeleteCtx(r.Context(), tx); err != nil {

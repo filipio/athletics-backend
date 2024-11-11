@@ -14,20 +14,28 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "event_id": 1,
-    "content": "ktoto",
+    "event_id": 2,
+    "content": "foo bar",
     "type": "athlete"
 }
 
 ###
 
-PUT {{base_url}}/api/v1/{{resource_name}}/1 HTTP/1.1
-content-type: application/json
+GET {{base_url}}/api/v1/{{resource_name}}/2 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+
+PUT {{base_url}}/api/v1/{{resource_name}}/2 HTTP/1.1
 Authorization: Bearer {{token}}
 
 {
-    "event_id": 1,
-    "content": "foobarbazz",
-    "type": "athlete",
-    "correct_answer": 123
+    "event_id": 2,
+    "content": "foo bar baz",
+    "type": "athlete"
 }
+
+###
+
+DELETE {{base_url}}/api/v1/{{resource_name}}/2 HTTP/1.1
+Authorization: Bearer {{token}}

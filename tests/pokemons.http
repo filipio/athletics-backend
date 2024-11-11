@@ -4,5 +4,40 @@
 
 ###
 
-GET {{base_url}}/api/v1/pokemons HTTP/1.1
+GET {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+
+POST {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "pokemon_name": "Pikachu",
+    "age": 12,
+    "email": "foo.bar@gmail.com",
+    "attack": "Ember"
+}
+
+###
+
+GET {{base_url}}/api/v1/{{resource_name}}/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+
+PUT {{base_url}}/api/v1/{{resource_name}}/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+{
+    "pokemon_name": "Pikachu",
+    "age": 12,
+    "email": "foo.bar@gmail.com",
+    "attack": "Ember"
+}
+
+###
+
+DELETE {{base_url}}/api/v1/{{resource_name}}/1 HTTP/1.1
 Authorization: Bearer {{token}}

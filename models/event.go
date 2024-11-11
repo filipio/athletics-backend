@@ -15,15 +15,17 @@ type Event struct {
 	Questions   []Question `json:"questions,omitempty" gorm:"foreignKey:EventID;constraint:OnDelete:CASCADE"`
 }
 
-func GetEventsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	queryFunctions := []func(db *gorm.DB) *gorm.DB{getByIds(r)}
+func (m Event) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	db = getByIds(db, r)
 	queryParams := r.URL.Query()
 
 	if queryParams.Get("active") == "true" {
-		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
-			return db.Where("NOW() < deadline")
-		})
+		db = db.Where("NOW() < deadline")
 	}
 
-	return db.Scopes(queryFunctions...)
+	return db
+}
+
+func (m Event) BuildResponse() any {
+	return m
 }

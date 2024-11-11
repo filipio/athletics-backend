@@ -25,32 +25,29 @@ func (m Answer) Validate(r *http.Request) error {
 	return nil
 }
 
-func GetAnswersQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	queryFunctions := []func(db *gorm.DB) *gorm.DB{onlyCurrentUserRecords(r)}
+func (m Answer) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	db = onlyCurrentUserRecords(db, r)
+	db = getByIds(db, r)
 
 	queryParams := r.URL.Query()
 	if queryParams.Has("question_id") {
-		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
-			return db.Where("question_id IN (?)", queryParams.Get("question_id"))
-		})
+		db = db.Where("question_id IN (?)", queryParams.Get("question_id"))
 	}
 
-	return db.Scopes(queryFunctions...)
+	return db
 }
 
-func GetAnswerQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+func (m Answer) GetQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	db = onlyCurrentUserRecords(db, r)
 	db = GetByIdQuery(db, r)
-	queryFunctions := []func(db *gorm.DB) *gorm.DB{onlyCurrentUserRecords(r)}
-	return db.Scopes(queryFunctions...)
+	return db
 }
 
-func UpdateAnswerQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	return baseUpdateQuery(GetAnswerQuery(db, r))
+func (m Answer) BuildResponse() any {
+	return m
 }
 
-func onlyCurrentUserRecords(r *http.Request) func(db *gorm.DB) *gorm.DB {
+func onlyCurrentUserRecords(db *gorm.DB, r *http.Request) *gorm.DB {
 	currentUser := r.Context().Value(utils.UserContextKey).(User)
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("user_id = ?", currentUser.ID)
-	}
+	return db.Where("user_id = ?", currentUser.ID)
 }

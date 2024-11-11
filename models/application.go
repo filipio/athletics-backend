@@ -49,20 +49,25 @@ func (m AppModel) AfterDeleteCtx(ctx context.Context, tx *gorm.DB) error {
 	return nil
 }
 
-// defines the base query function for all models in the application
-type BuildQueryFunc func(db *gorm.DB, r *http.Request) *gorm.DB
-
-func DefaultQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+func (m AppModel) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	return db
+}
+
+func (m AppModel) GetQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	return GetByIdQuery(db, r)
+}
+
+func (m AppModel) UpdateQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	return baseUpdateQuery(m.GetQuery(db, r))
+}
+
+func (m AppModel) DeleteQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	return GetByIdQuery(db, r)
 }
 
 func GetByIdQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	id := utils.IntPathValue(r, "id")
 	return db.Where("id = ?", id)
-}
-
-func DefaultUpdateQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	return baseUpdateQuery(GetByIdQuery(db, r))
 }
 
 func baseUpdateQuery(db *gorm.DB) *gorm.DB {
@@ -73,31 +78,14 @@ func Paginate(db *gorm.DB, pageNo int, perPage int, orderBy string, orderDirecti
 	return db.Offset((pageNo - 1) * perPage).Limit(perPage).Order(orderBy + " " + orderDirection)
 }
 
-func doNothing(db *gorm.DB) *gorm.DB {
-	return db
-}
-
-func getByIds(r *http.Request) func(db *gorm.DB) *gorm.DB {
+func getByIds(db *gorm.DB, r *http.Request) *gorm.DB {
 	queryParams := r.URL.Query()
 	if queryParams.Has("ids") {
 		ids := queryParams.Get("ids")
-		return func(db *gorm.DB) *gorm.DB {
-			return db.Where("id in (?)", ids)
-		}
+		return db.Where("id in (?)", ids)
+	} else {
+		return db
 	}
-
-	return doNothing
-}
-
-// defines the base response function for all models in the application
-type BuildResponseFunc[T any, V any] func(T) V
-
-type DefaultResponse struct {
-	Data any `json:"data"`
-}
-
-func BuildDefaultResponse[T any](model T) T {
-	return model
 }
 
 // fetches the database connection from the request context

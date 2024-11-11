@@ -14,15 +14,17 @@ type Pokemon struct {
 	Attack      string `json:"attack" validate:"required,oneof=Thunderbolt Ember Vine_Whip Water_Gun,min=2,max=100" gorm:"not null"`
 }
 
-func GetPokemonsQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	queryFunctions := []func(db *gorm.DB) *gorm.DB{}
+func (m Pokemon) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	db = getByIds(db, r)
 	queryParams := r.URL.Query()
 
 	if queryParams.Has("name") {
-		queryFunctions = append(queryFunctions, func(db *gorm.DB) *gorm.DB {
-			return db.Where("pokemon_name IN (?)", queryParams.Get("name"))
-		})
+		db = db.Where("pokemon_name IN (?)", queryParams.Get("name"))
 	}
 
-	return db.Scopes(queryFunctions...)
+	return db
+}
+
+func (m Pokemon) BuildResponse() any {
+	return m
 }

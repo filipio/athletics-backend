@@ -1,0 +1,13 @@
+@base_url = http://localhost:8080
+@resource_name = athletes
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzMzMzEzMjYsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.zjVy6iZn6taW_en-uGAZ2-Hdo86Luf0TjVv8zktvJQI
+
+###
+
+GET {{base_url}}/api/v1/{{resource_name}}?order_by=last_name HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+
+GET {{base_url}}/api/v1/{{resource_name}}/1 HTTP/1.1
+Authorization: Bearer {{token}}

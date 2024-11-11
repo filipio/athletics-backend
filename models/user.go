@@ -26,11 +26,11 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func GetUsersQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+func (m User) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	return db.Preload("Roles")
 }
 
-func GetUserQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+func (m User) GetQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	return GetByIdQuery(db.Preload("Roles"), r)
 }
 
@@ -42,17 +42,17 @@ type UserResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func BuildUserResponse(model User) UserResponse {
-	roles := make([]string, len(model.Roles))
-	for i, role := range model.Roles {
+func (m User) BuildResponse() any {
+	roles := make([]string, len(m.Roles))
+	for i, role := range m.Roles {
 		roles[i] = role.Name
 	}
 
 	return UserResponse{
-		ID:        model.ID,
-		Email:     model.Email,
+		ID:        m.ID,
+		Email:     m.Email,
 		Roles:     roles,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
 	}
 }
