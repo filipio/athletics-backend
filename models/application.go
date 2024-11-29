@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/filipio/athletics-backend/utils"
@@ -81,7 +82,7 @@ func Paginate(db *gorm.DB, pageNo int, perPage int, orderBy string, orderDirecti
 func getByIds(db *gorm.DB, r *http.Request) *gorm.DB {
 	queryParams := r.URL.Query()
 	if queryParams.Has("ids") {
-		ids := queryParams.Get("ids")
+		ids := strings.Split(queryParams.Get("ids"), ",")
 		return db.Where("id in (?)", ids)
 	} else {
 		return db

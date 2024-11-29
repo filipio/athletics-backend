@@ -16,7 +16,8 @@ Authorization: Bearer {{token}}
 {
     "event_id": 2,
     "content": "foo bar",
-    "type": "athlete"
+    "type": "athlete",
+    "points": 100
 }
 
 ###
@@ -26,13 +27,15 @@ Authorization: Bearer {{token}}
 
 ###
 
-PUT {{base_url}}/api/v1/{{resource_name}}/2 HTTP/1.1
+PUT {{base_url}}/api/v1/{{resource_name}}/3 HTTP/1.1
 Authorization: Bearer {{token}}
 
 {
     "event_id": 2,
-    "content": "foo bar baz",
-    "type": "athlete"
+    "content": "foo bar",
+    "type": "athlete",
+    "points": 10,
+    "correct_answer": "foo bar"
 }
 
 ###

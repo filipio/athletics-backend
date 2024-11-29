@@ -4,11 +4,11 @@
 
 ###
 
-GET {{base_url}}/healthz HTTP/1.1
+GET {{base_url}}/api/healthz HTTP/1.1
 
 ###
 
-GET {{base_url}}/readyz HTTP/1.1
+GET {{base_url}}/api/readyz HTTP/1.1
 
 ### 
 POST {{base_url}}/api/v1/register HTTP/1.1

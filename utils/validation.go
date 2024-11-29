@@ -14,10 +14,6 @@ var validate *validator.Validate = validator.New(validator.WithRequiredStructEna
 func RegisterValidations(db *gorm.DB) {
 
 	validate.RegisterValidation("id_of", func(fl validator.FieldLevel) bool {
-		// TODO: extract question type and validate content json based on it
-		// questionType := fl.Parent().FieldByName("Type")
-		// fmt.Printf("questionType: %v\n", questionType)
-
 		tableName := fl.Param() + "s"
 		passedId := fl.Field().Uint()
 		sqlQuery := fmt.Sprintf("SELECT id FROM %s WHERE id = ?", tableName)
@@ -112,6 +108,8 @@ func buildErrorMessage(err validator.FieldError) string {
 	case "oneof":
 		param := strings.ReplaceAll(err.Param(), " ", ",")
 		return fmt.Sprintf("must be one of values:%s", param)
+	case "eq":
+		return fmt.Sprintf("must be equal to %s", err.Param())
 	default:
 		return "is invalid"
 	}

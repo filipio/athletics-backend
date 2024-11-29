@@ -39,5 +39,5 @@ Authorization: Bearer {{token}}
 
 ###
 
-DELETE {{base_url}}/api/v1/{{resource_name}}/1 HTTP/1.1
+DELETE {{base_url}}/api/v1/{{resource_name}}/2 HTTP/1.1
 Authorization: Bearer {{token}}

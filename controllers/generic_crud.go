@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/filipio/athletics-backend/models"
@@ -122,9 +123,10 @@ func Update[T utils.DbModel]() utils.HandlerWithError {
 
 			baseQuery := db.Model(&record)
 			query := record.UpdateQuery(baseQuery, r)
+			id := utils.IntPathValue(r, "id")
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
-				if err := record.BeforeUpdateCtx(r.Context(), tx); err != nil {
+				if err := record.BeforeUpdateCtx(context.WithValue(r.Context(), utils.RecordIdContextKey, id), tx); err != nil {
 					return err
 				}
 
@@ -138,7 +140,7 @@ func Update[T utils.DbModel]() utils.HandlerWithError {
 					return utils.RecordNotFoundError{}
 				}
 
-				if err := record.AfterUpdateCtx(r.Context(), tx); err != nil {
+				if err := record.AfterUpdateCtx(context.WithValue(r.Context(), utils.RecordIdContextKey, id), tx); err != nil {
 					return err
 				}
 
@@ -147,7 +149,6 @@ func Update[T utils.DbModel]() utils.HandlerWithError {
 				return err
 			}
 
-			id := utils.IntPathValue(r, "id")
 			db.First(&record, id)
 			response := record.BuildResponse()
 
@@ -166,9 +167,10 @@ func Delete[T utils.DbModel]() utils.HandlerWithError {
 			var record T
 
 			query := record.DeleteQuery(db, r)
+			id := utils.IntPathValue(r, "id")
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
-				if err := record.BeforeDeleteCtx(r.Context(), tx); err != nil {
+				if err := record.BeforeDeleteCtx(context.WithValue(r.Context(), utils.RecordIdContextKey, id), tx); err != nil {
 					return err
 				}
 
@@ -182,7 +184,7 @@ func Delete[T utils.DbModel]() utils.HandlerWithError {
 					return utils.RecordNotFoundError{}
 				}
 
-				if err := record.AfterDeleteCtx(r.Context(), tx); err != nil {
+				if err := record.AfterDeleteCtx(context.WithValue(r.Context(), utils.RecordIdContextKey, id), tx); err != nil {
 					return err
 				}
 

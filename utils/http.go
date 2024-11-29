@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -86,8 +85,7 @@ func DecodeAndValidate[T DbModel](r *http.Request) (T, error) {
 		return record, fmt.Errorf("decode json: %w", err)
 	}
 
-	if err := validate.Struct(record); err != nil {
-		log.Println(err.Error())
+	if err := validate.Struct(&record); err != nil {
 		return record, err
 	}
 
@@ -96,4 +94,13 @@ func DecodeAndValidate[T DbModel](r *http.Request) (T, error) {
 	}
 
 	return record, nil
+}
+
+// validates the instance of a struct using defined tags on its fields
+func Validate(instance any) error {
+	if err := validate.Struct(instance); err != nil {
+		return err
+	}
+
+	return nil
 }

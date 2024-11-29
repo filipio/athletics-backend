@@ -1,6 +1,9 @@
 package models
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/filipio/athletics-backend/utils"
@@ -8,11 +11,54 @@ import (
 	"gorm.io/gorm"
 )
 
+type AnswerOfQuestion struct {
+	datatypes.JSON
+}
+
+func (*AnswerOfQuestion) typeMapping() map[string]func() any {
+	return map[string]func() any{
+		"athlete": func() any { return &AthleteAnswer{} },
+		"country": func() any { return &AthletesIdsAnswer{} },
+	}
+}
+
+type AthleteAnswer struct {
+	Value string `json:"value" validate:"required"`
+}
+
+type AthletesIdsAnswer struct {
+	AthleteIdOne   uint `json:"athlete_id_one" validate:"required,id_of=athlete"`
+	AthleteIdTwo   uint `json:"athlete_id_two" validate:"required,id_of=athlete"`
+	AthleteIdThree uint `json:"athlete_id_three" validate:"required,id_of=athlete"`
+}
+
+func (a *AnswerOfQuestion) Validate(questionType string) error {
+	constructor, ok := a.typeMapping()[questionType]
+	if !ok {
+		return errors.New("invalid question type: " + questionType)
+	}
+
+	answer := constructor()
+
+	if err := json.Unmarshal(a.JSON, answer); err != nil {
+		fmt.Println("error unmarshalling answer", err)
+		return errors.New("invalid json")
+	}
+	if err := utils.Validate(answer); err != nil {
+		fmt.Println("error validating answer", err.Error())
+		fmt.Println("answer", answer)
+		return errors.New("invalid json")
+	}
+
+	return nil
+}
+
 type Answer struct {
 	AppModel
-	UserID     uint           `json:"user_id" gorm:"not null" validate:"required"`
-	QuestionID uint           `json:"question_id" gorm:"not null" validate:"required,id_of=question"`
-	Content    datatypes.JSON `json:"content" gorm:"not null" validate:"required"`
+	UserID     uint             `json:"user_id" gorm:"not null" validate:"required"`
+	QuestionID uint             `json:"question_id" gorm:"not null" validate:"required,id_of=question"`
+	Content    AnswerOfQuestion `json:"content" gorm:"not null" validate:"required"`
+	Points     uint             `json:"points" gorm:"not null;default:0" validate:"eq=0"` // validation is set so it is not possible to set points manually
 }
 
 func (m Answer) Validate(r *http.Request) error {
@@ -22,7 +68,38 @@ func (m Answer) Validate(r *http.Request) error {
 		return utils.InvalidUserError{}
 	}
 
-	return nil
+	db := Db(r)
+
+	var question Question
+	db.First(&question, m.QuestionID)
+
+	if err := m.Content.Validate(question.Type); err != nil {
+		return utils.AppValidationError{
+			FieldPath: "content",
+			AppError:  utils.AppError{Message: err.Error()},
+		}
+	}
+
+	var otherAnswer Answer
+	db.Where("user_id = ? AND question_id = ?", m.UserID, m.QuestionID).First(&otherAnswer)
+	if otherAnswer.ID != 0 {
+		if r.Method == http.MethodPost {
+			return utils.AppValidationError{
+				FieldPath: "question_id",
+				AppError:  utils.AppError{Message: "already answered by current user"},
+			}
+		} else if r.Method == http.MethodPut && question.CorrectAnswer != nil {
+			return utils.AppValidationError{
+				FieldPath: "question_id",
+				AppError:  utils.AppError{Message: "already has correct answer"},
+			}
+		}
+	}
+
+	var event Event
+	db.First(&event, question.EventID)
+
+	return event.IsPresent()
 }
 
 func (m Answer) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
@@ -31,7 +108,11 @@ func (m Answer) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 
 	queryParams := r.URL.Query()
 	if queryParams.Has("question_id") {
-		db = db.Where("question_id IN (?)", queryParams.Get("question_id"))
+		db = db.Where("question_id = ?", queryParams.Get("question_id"))
+	}
+
+	if queryParams.Has("user_id") {
+		db = db.Where("user_id = ?", queryParams.Get("user_id"))
 	}
 
 	return db
@@ -48,6 +129,11 @@ func (m Answer) BuildResponse() any {
 }
 
 func onlyCurrentUserRecords(db *gorm.DB, r *http.Request) *gorm.DB {
-	currentUser := r.Context().Value(utils.UserContextKey).(User)
-	return db.Where("user_id = ?", currentUser.ID)
+	onlyForCurrentUser := r.Context().Value(utils.OnlyCurrentUserContextKey).(bool)
+	if onlyForCurrentUser {
+		currentUser := r.Context().Value(utils.UserContextKey).(User)
+		return db.Where("user_id = ?", currentUser.ID)
+	} else {
+		return db
+	}
 }

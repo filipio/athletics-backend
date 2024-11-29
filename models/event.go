@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/filipio/athletics-backend/utils"
 	"gorm.io/gorm"
 )
 
@@ -28,4 +29,15 @@ func (m Event) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 
 func (m Event) BuildResponse() any {
 	return m
+}
+
+func (m *Event) IsPresent() error {
+	if m.Deadline.Before(time.Now().UTC()) {
+		return utils.AppValidationError{
+			FieldPath: "event_id",
+			AppError:  utils.AppError{Message: "event is already closed"},
+		}
+	}
+
+	return nil
 }

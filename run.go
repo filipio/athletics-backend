@@ -51,6 +51,7 @@ func appWorkers() *river.Workers {
 
 	river.AddWorker(riverWorkers, &workers.SortWorker{})
 	river.AddWorker(riverWorkers, &workers.PokemonWorker{})
+	river.AddWorker(riverWorkers, &workers.PointsGranterWorker{})
 
 	return riverWorkers
 }
@@ -130,6 +131,7 @@ func newServerHandler(db *gorm.DB, insertClient *config.InsertWorkerClient) http
 	var handler http.Handler = mux
 	handler = m.DbMiddleware(handler, db)
 	handler = m.WorkersMiddleware(handler, insertClient)
+	handler = m.OnlyCurrentUserMiddleware(handler)
 	handler = m.LoggingMiddleware(handler)
 
 	return handler
