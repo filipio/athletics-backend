@@ -14,12 +14,16 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "email": "foobarbazz@gmail.com",
-    "password": "foobarbaz",
+    "email": "organizer2@gmail.com",
+    "password": "organizer123",
     "roles": [
         {
             "id": 3,
             "name": "organizer"
+        },
+        {
+            "id": 2,
+            "name": "user"
         }
     ]
 }

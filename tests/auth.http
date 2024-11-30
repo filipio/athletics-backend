@@ -33,6 +33,15 @@ POST {{base_url}}/api/v1/login HTTP/1.1
 content-type: application/json
 
 {
+    "email": "organizer2@gmail.com",
+    "password": "organizer123"
+}
+
+###
+POST {{base_url}}/api/v1/login HTTP/1.1
+content-type: application/json
+
+{
     "email": "user40@gmail.com",
     "password": "user123"
 }

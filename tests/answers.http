@@ -1,6 +1,6 @@
 @base_url = http://localhost:8080
 @resource_name = answers
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzMzMzEzMjYsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.zjVy6iZn6taW_en-uGAZ2-Hdo86Luf0TjVv8zktvJQI
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzU1ODcwMDAsInJvbGVzIjpbInVzZXIiXSwic3ViIjoyfQ.SwOP0beaeCPNg5cP_plMWVEb6nJxPYbBk2rM5sSGYF0
 
 ###
 

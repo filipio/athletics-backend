@@ -1,6 +1,6 @@
 @base_url = http://localhost:8080
 @resource_name = events
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzMzMzEzMjYsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.zjVy6iZn6taW_en-uGAZ2-Hdo86Luf0TjVv8zktvJQI
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzU1ODc1MjYsInJvbGVzIjpbInVzZXIiLCJvcmdhbml6ZXIiXSwic3ViIjo0fQ.nT75tLeoWHU_HE40rJhHkZoUZ7VnvTsmVMM1pb_Zuas
 
 ###
 

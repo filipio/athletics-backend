@@ -89,20 +89,17 @@ func parseToken(tokenString string) (*jwt.Token, error) {
 }
 
 func requiredRoleFound(claims jwt.MapClaims, requiredRole string) bool {
-	userRoles := claims["roles"].([]interface{})
+	userRolesInterface := claims["roles"].([]interface{})
+	userRoles := make([]string, len(userRolesInterface))
+	for i, v := range userRolesInterface {
+		userRoles[i] = v.(string)
+	}
 
 	if slices.Contains(userRoles, utils.AdminRole) {
 		return true
 	}
 
-	roleFound := false
-
-	for _, role := range userRoles {
-		actualRole := role.(string)
-		roleFound = (actualRole == requiredRole)
-	}
-
-	return roleFound
+	return slices.Contains(userRoles, requiredRole)
 }
 
 func buildClientContext(r *http.Request, claims jwt.MapClaims, db *gorm.DB) (context.Context, error) {

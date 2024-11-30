@@ -45,14 +45,14 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("GET /api/v1/disciplines", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll[models.Discipline]())))
 	mux.Handle("GET /api/v1/disciplines/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get[models.Discipline]())))
 
-	mux.Handle("GET /api/v1/events", m.ErrorsMiddleware(m.OrganizerOnly(controllers.GetAll[models.Event]())))
-	mux.Handle("GET /api/v1/events/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Get[models.Event]())))
+	mux.Handle("GET /api/v1/events", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll[models.Event]())))
+	mux.Handle("GET /api/v1/events/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get[models.Event]())))
 	mux.Handle("POST /api/v1/events", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Create[models.Event]())))
 	mux.Handle("PUT /api/v1/events/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Update[models.Event]())))
 	mux.Handle("DELETE /api/v1/events/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Delete[models.Event]())))
 
-	mux.Handle("GET /api/v1/questions", m.ErrorsMiddleware(m.OrganizerOnly(controllers.GetAll[models.Question]())))
-	mux.Handle("GET /api/v1/questions/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Get[models.Question]())))
+	mux.Handle("GET /api/v1/questions", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll[models.Question]())))
+	mux.Handle("GET /api/v1/questions/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get[models.Question]())))
 	mux.Handle("POST /api/v1/questions", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Create[models.Question]())))
 	mux.Handle("PUT /api/v1/questions/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Update[models.Question]())))
 	mux.Handle("DELETE /api/v1/questions/{id}", m.ErrorsMiddleware(m.OrganizerOnly(controllers.Delete[models.Question]())))
