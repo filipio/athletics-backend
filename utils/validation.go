@@ -24,7 +24,6 @@ func RegisterValidations(db *gorm.DB) {
 			return false
 		}
 		if result.RowsAffected != 1 {
-			fmt.Println("wrong number of rows affected:", result.RowsAffected)
 			return false
 		}
 

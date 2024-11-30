@@ -2,7 +2,6 @@ package workers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
@@ -22,8 +21,6 @@ func (w *PokemonWorker) Work(ctx context.Context, job *river.Job[args.PokemonArg
 	db := ctx.Value(utils.DbContextKey).(*gorm.DB)
 	var pokemon models.Pokemon
 	db.First(&pokemon, pokemonId)
-	fmt.Println("Pokemon: ", pokemon)
 
 	return nil
-	// return errors.New("retrying to show how it works...")
 }

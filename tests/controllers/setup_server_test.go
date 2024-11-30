@@ -39,7 +39,6 @@ func TestMain(m *testing.M) {
 		log.Fatalf("failed to wait for server to be ready: %v\n", err)
 	}
 
-	fmt.Println("establishing connection to database in test main")
 	dbInstance = config.DatabaseConnection()
 
 	payload := utils.AnyMap{"email": os.Getenv("ADMIN_EMAIL"), "password": os.Getenv("ADMIN_PASSWORD")}

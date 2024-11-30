@@ -63,7 +63,7 @@ func (m AppModel) UpdateQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 }
 
 func (m AppModel) DeleteQuery(db *gorm.DB, r *http.Request) *gorm.DB {
-	return GetByIdQuery(db, r)
+	return m.GetQuery(db, r)
 }
 
 func GetByIdQuery(db *gorm.DB, r *http.Request) *gorm.DB {

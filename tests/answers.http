@@ -14,7 +14,7 @@ content-type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "question_id": 2,
+    "question_id": 3,
     "user_id": 1,
     "content": "{\"value\":123}"
 }
@@ -42,7 +42,7 @@ Authorization: Bearer {{token}}
 
 ###
 
-GET {{base_url}}/api/v1/{{resource_name}}?ids=1,2 HTTP/1.1
+GET {{base_url}}/api/v1/{{resource_name}} HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###

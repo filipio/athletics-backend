@@ -19,7 +19,6 @@ type SortWorker struct {
 
 func (w *SortWorker) Work(ctx context.Context, job *river.Job[args.SortArgs]) error {
 	// sleep for 10 seconds to simulate long running worker
-	fmt.Println("Sorting strings...")
 
 	//
 	select {
@@ -29,8 +28,6 @@ func (w *SortWorker) Work(ctx context.Context, job *river.Job[args.SortArgs]) er
 		time.Sleep(10 * time.Second)
 
 	}
-
-	fmt.Println("sorting!")
 	sort.Strings(job.Args.Strings)
 	fmt.Printf("Sorted strings: %+v\n", job.Args.Strings)
 	return nil

@@ -3,8 +3,8 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/filipio/athletics-backend/utils"
 	"gorm.io/datatypes"
@@ -41,12 +41,9 @@ func (a *AnswerOfQuestion) Validate(questionType string) error {
 	answer := constructor()
 
 	if err := json.Unmarshal(a.JSON, answer); err != nil {
-		fmt.Println("error unmarshalling answer", err)
 		return errors.New("invalid json")
 	}
 	if err := utils.Validate(answer); err != nil {
-		fmt.Println("error validating answer", err.Error())
-		fmt.Println("answer", answer)
 		return errors.New("invalid json")
 	}
 
@@ -55,10 +52,11 @@ func (a *AnswerOfQuestion) Validate(questionType string) error {
 
 type Answer struct {
 	AppModel
-	UserID     uint             `json:"user_id" gorm:"not null" validate:"required"`
-	QuestionID uint             `json:"question_id" gorm:"not null" validate:"required,id_of=question"`
-	Content    AnswerOfQuestion `json:"content" gorm:"not null" validate:"required"`
-	Points     uint             `json:"points" gorm:"not null;default:0" validate:"eq=0"` // validation is set so it is not possible to set points manually
+	UserID          uint             `json:"user_id" gorm:"not null" validate:"required"`
+	QuestionID      uint             `json:"question_id" gorm:"not null" validate:"required,id_of=question"`
+	Content         AnswerOfQuestion `json:"content" gorm:"not null" validate:"required"`
+	Points          uint             `json:"points" gorm:"not null;default:0" validate:"eq=0"` // validation is set so it is not possible to set points manually
+	PointsGrantedAt *time.Time       `json:"points_granted_at"`
 }
 
 func (m Answer) Validate(r *http.Request) error {
@@ -88,10 +86,10 @@ func (m Answer) Validate(r *http.Request) error {
 				FieldPath: "question_id",
 				AppError:  utils.AppError{Message: "already answered by current user"},
 			}
-		} else if r.Method == http.MethodPut && question.CorrectAnswer != nil {
+		} else if r.Method == http.MethodPut && otherAnswer.PointsGrantedAt != nil {
 			return utils.AppValidationError{
 				FieldPath: "question_id",
-				AppError:  utils.AppError{Message: "already has correct answer"},
+				AppError:  utils.AppError{Message: "points already granted"},
 			}
 		}
 	}
