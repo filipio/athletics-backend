@@ -20,7 +20,6 @@ func RegisterValidations(db *gorm.DB) {
 
 		result := db.Exec(sqlQuery, passedId)
 		if result.Error != nil {
-			fmt.Println("Error:", result.Error)
 			return false
 		}
 		if result.RowsAffected != 1 {

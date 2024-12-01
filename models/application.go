@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -81,7 +80,6 @@ func Paginate[T any](query *gorm.DB, r *http.Request, paginationOptions *utils.P
 
 	totalCountResult := query.Model(&queryInstance).Count(&totalCount)
 	if totalCountResult.Error != nil {
-		fmt.Println("count err", totalCountResult.Error)
 		return nil, totalCountResult.Error
 	}
 
@@ -104,7 +102,6 @@ func Paginate[T any](query *gorm.DB, r *http.Request, paginationOptions *utils.P
 	var records []T
 	queryResult := PaginateQuery(query, paginationParams).Find(&records)
 	if queryResult.Error != nil {
-		fmt.Println("err", queryResult.Error)
 		return nil, queryResult.Error
 	}
 
