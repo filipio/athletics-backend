@@ -13,30 +13,32 @@ func GetAll[T utils.DbModel]() utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			db := models.Db(r)
-			var records []T
 			var instance T
 
 			query := instance.GetAllQuery(db, r)
-			pageNo, perPage, orderBy, orderDirection := utils.PaginationParams(r)
-			queryResult := models.Paginate(query, pageNo, perPage, orderBy, orderDirection).Find(&records)
-
-			if queryResult.Error != nil {
-				return queryResult.Error
-			}
 
 			var totalCount int64
-			totalCountResult := instance.GetAllQuery(db.Model(&instance), r).Count(&totalCount)
+
+			totalCountResult := query.Model(&instance).Count(&totalCount)
 			if totalCountResult.Error != nil {
 				return totalCountResult.Error
 			}
 
-			var responseRecords []any = []any{}
-			for _, record := range records {
-				responseRecords = append(responseRecords, record.BuildResponse())
+			paginationParams := utils.BuildPaginationParams(r)
+
+			var records []T
+			queryResult := models.PaginateQuery(query, paginationParams).Find(&records)
+			if queryResult.Error != nil {
+				return queryResult.Error
 			}
 
-			paginatedResponse := utils.BuildPaginatedResponse(responseRecords, totalCount, pageNo, perPage)
-			if err := utils.Encode(w, r, http.StatusOK, paginatedResponse); err != nil {
+			var responseRecords []any = make([]any, len(records))
+			for i, record := range records {
+				responseRecords[i] = record.BuildResponse()
+			}
+
+			paginationResponse := utils.BuildPaginatedResponse(responseRecords, totalCount, paginationParams)
+			if err := utils.Encode(w, r, http.StatusOK, paginationResponse); err != nil {
 				return err
 			}
 

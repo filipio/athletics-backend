@@ -17,13 +17,16 @@ type PaginatedResponse struct {
 	PaginationInfo PaginationInfo `json:"pagination_info"`
 }
 
-func BuildPaginatedResponse[T any](responseRecords []T, totalCount int64, pageNumber int, pageSize int) PaginatedResponse {
+func BuildPaginatedResponse(responseRecords []any, totalCount int64, paginationParams *PaginationParams) *PaginatedResponse {
+	pageSize := paginationParams.PerPage
+	pageNumber := paginationParams.PageNo
+
 	totalPages := int(totalCount) / pageSize
 	if int(totalCount)%pageSize != 0 || totalPages == 0 {
 		totalPages++
 	}
 
-	return PaginatedResponse{
+	return &PaginatedResponse{
 		Data: responseRecords,
 		PaginationInfo: PaginationInfo{
 			Count:            len(responseRecords),

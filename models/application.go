@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -75,8 +76,54 @@ func baseUpdateQuery(db *gorm.DB) *gorm.DB {
 	return db.Omit("id", "created_at")
 }
 
-func Paginate(db *gorm.DB, pageNo int, perPage int, orderBy string, orderDirection string) *gorm.DB {
-	return db.Offset((pageNo - 1) * perPage).Limit(perPage).Order(orderBy + " " + orderDirection)
+func Paginate[T any](query *gorm.DB, r *http.Request, paginationOptions *utils.PaginationParams, mapResponseFunc func(T) any, queryInstance any) (*utils.PaginatedResponse, error) {
+	var totalCount int64
+
+	totalCountResult := query.Model(&queryInstance).Count(&totalCount)
+	if totalCountResult.Error != nil {
+		fmt.Println("count err", totalCountResult.Error)
+		return nil, totalCountResult.Error
+	}
+
+	paginationParams := utils.BuildPaginationParams(r)
+	if paginationOptions != nil {
+		if paginationOptions.PerPage != 0 {
+			paginationParams.PerPage = paginationOptions.PerPage
+		}
+		if paginationOptions.PageNo != 0 {
+			paginationParams.PageNo = paginationOptions.PageNo
+		}
+		if paginationOptions.OrderBy != "" {
+			paginationParams.OrderBy = paginationOptions.OrderBy
+		}
+		if paginationOptions.OrderDirection != "" {
+			paginationParams.OrderDirection = paginationOptions.OrderDirection
+		}
+	}
+
+	var records []T
+	queryResult := PaginateQuery(query, paginationParams).Find(&records)
+	if queryResult.Error != nil {
+		fmt.Println("err", queryResult.Error)
+		return nil, queryResult.Error
+	}
+
+	var responseRecords []any = make([]any, len(records))
+	for i, record := range records {
+		if mapResponseFunc != nil {
+			responseRecords[i] = mapResponseFunc(record)
+		} else {
+			responseRecords[i] = record
+		}
+
+	}
+
+	return utils.BuildPaginatedResponse(responseRecords, totalCount, paginationParams), nil
+}
+
+func PaginateQuery(db *gorm.DB, paginationParams *utils.PaginationParams) *gorm.DB {
+	return db.Offset((paginationParams.PageNo - 1) * paginationParams.PerPage).
+		Limit(paginationParams.PerPage).Order(paginationParams.OrderBy + " " + paginationParams.OrderDirection)
 }
 
 func getByIds(db *gorm.DB, r *http.Request) *gorm.DB {

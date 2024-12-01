@@ -14,7 +14,7 @@ import (
 
 const jwtTokenExpiration = time.Hour * 24 * 30
 
-func Register(db *gorm.DB) utils.HandlerWithError {
+func Register() utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			user, err := utils.DecodeAndValidate[models.User](r)
@@ -22,6 +22,8 @@ func Register(db *gorm.DB) utils.HandlerWithError {
 			if err != nil {
 				return err
 			}
+
+			db := models.Db(r)
 
 			var role models.Role
 
@@ -53,7 +55,7 @@ func Register(db *gorm.DB) utils.HandlerWithError {
 		})
 }
 
-func Login(db *gorm.DB) utils.HandlerWithError {
+func Login() utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			bodyUser, decodeErr := utils.DecodeAndValidate[models.User](r)
@@ -61,6 +63,8 @@ func Login(db *gorm.DB) utils.HandlerWithError {
 			if decodeErr != nil {
 				return decodeErr
 			}
+
+			db := models.Db(r)
 
 			var user models.User
 			db.First(&user, "email = ?", bodyUser.Email)

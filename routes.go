@@ -30,8 +30,8 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("PUT /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Update[models.Pokemon]()))
 	mux.Handle("DELETE /api/v1/pokemons/{id}", m.ErrorsMiddleware(controllers.Delete[models.Pokemon]()))
 
-	mux.Handle("POST /api/v1/register", m.ErrorsMiddleware(controllers.Register(db)))
-	mux.Handle("POST /api/v1/login", m.ErrorsMiddleware(controllers.Login(db)))
+	mux.Handle("POST /api/v1/register", m.ErrorsMiddleware(controllers.Register()))
+	mux.Handle("POST /api/v1/login", m.ErrorsMiddleware(controllers.Login()))
 
 	mux.Handle("GET /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.GetAll[models.User]())))
 	mux.Handle("GET /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Get[models.User]())))
@@ -65,6 +65,8 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 
 	mux.Handle("GET /api/v1/answers", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll[models.Answer]())))
 	mux.Handle("GET /api/v1/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get[models.Answer]())))
+
+	mux.Handle("GET /api/v1/ranking", m.ErrorsMiddleware(m.UserOnly(controllers.GetRanking())))
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		response := utils.ErrorsResponse{

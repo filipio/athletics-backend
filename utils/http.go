@@ -18,6 +18,13 @@ type ErrorsResponse struct {
 	Details   any    `json:"details"` // should be of type: string, utils.AnyMap
 }
 
+type PaginationParams struct {
+	PageNo         int
+	PerPage        int
+	OrderBy        string
+	OrderDirection string
+}
+
 func IntPathValue(r *http.Request, key string) int {
 	value := r.PathValue(key)
 	if value == "" {
@@ -36,28 +43,33 @@ func IntQueryValue(r *http.Request, key string) int {
 	return result
 }
 
-func PaginationParams(r *http.Request) (pageNo int, perPage int, orderBy string, orderDirection string) {
-	pageNo = IntQueryValue(r, "page_no")
+func BuildPaginationParams(r *http.Request) *PaginationParams {
+	pageNo := IntQueryValue(r, "page_no")
 	if pageNo == 0 {
 		pageNo = DefaultPageNumber
 	}
 
-	perPage = IntQueryValue(r, "per_page")
+	perPage := IntQueryValue(r, "per_page")
 	if perPage == 0 {
 		perPage = DefaultPageSize
 	}
 
-	orderBy = r.URL.Query().Get("order_by")
+	orderBy := r.URL.Query().Get("order_by")
 	if orderBy == "" {
 		orderBy = DefaultOrderBy
 	}
 
-	orderDirection = r.URL.Query().Get("order_dir")
+	orderDirection := r.URL.Query().Get("order_dir")
 	if orderDirection == "" {
 		orderDirection = "asc"
 	}
 
-	return
+	return &PaginationParams{
+		PageNo:         pageNo,
+		PerPage:        perPage,
+		OrderBy:        orderBy,
+		OrderDirection: orderDirection,
+	}
 }
 
 func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) error {
