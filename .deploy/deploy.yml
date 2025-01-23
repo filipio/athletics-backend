@@ -1,0 +1,45 @@
+- name: Build and deploy app
+  hosts: lekkoatletawka
+  become: yes
+  vars_files:
+  - files/secrets.yml
+  - files/vars.yml
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ golang_install_dir }}/go/bin"
+  tasks:
+    - name: create directory for source code
+      ansible.builtin.file:
+        path: "{{ source_code_dir }}"
+        state: directory
+      args:
+        force: true
+
+    - name: fetch source code
+      ansible.builtin.git:
+        repo: "https://github.com/filipio/athletics-backend.git"
+        dest: "{{ source_code_dir }}"
+
+    - name: build app
+      ansible.builtin.command:
+        cmd: "go build -o {{ service_bin_file }} ./cmd"
+      args:
+        chdir: "{{ source_code_dir }}"
+
+    - name: migrate database
+      ansible.builtin.command:
+        cmd: atlas migrate apply --env prod
+      environment:
+        DB_PASSWORD: "{{ db_password }}"
+        DB_USER: "{{ db_user }}"
+        DB_NAME: "{{ db_name }}"
+        DB_HOST: "localhost"
+        DB_PORT: "5432"
+      args:
+        chdir: "{{ source_code_dir }}"
+    
+    - name: restart service
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        state: restarted
+
+

@@ -1,0 +1,46 @@
+
+- name: Ensure required packages are installed
+  ansible.builtin.package:
+    name:
+      - wget
+      - tar
+    state: present
+
+- name: Download Golang tarball
+  ansible.builtin.get_url:
+    url: "{{ golang_download_url }}/go{{ golang_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/go{{ golang_version }}.linux-amd64.tar.gz"
+    mode: '0644'
+
+- name: Remove existing Go installation (if any)
+  ansible.builtin.file:
+    path: "{{ golang_install_dir }}/go"
+    state: absent
+
+- name: Extract Golang tarball
+  ansible.builtin.unarchive:
+    src: "/tmp/go{{ golang_version }}.linux-amd64.tar.gz"
+    dest: "{{ golang_install_dir }}"
+    remote_src: yes
+
+- name: Set up Golang environment variables
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/golang.sh
+    create: yes
+    state: present
+    regexp: '^export PATH=\$PATH:.*{{ golang_install_dir }}/go/bin.*$'
+    line: |
+      export PATH=$PATH:{{ golang_install_dir }}/go/bin
+
+- name: Ensure the environment script is executable
+  ansible.builtin.file:
+    path: /etc/profile.d/golang.sh
+    mode: '0755'
+
+- name: Verify Golang installation
+  ansible.builtin.command: "{{ golang_install_dir }}/go/bin/go version"
+  register: go_version_output
+
+- name: Show installed Go version
+  ansible.builtin.debug:
+    msg: "{{ go_version_output.stdout }}"

@@ -25,8 +25,8 @@ func main() {
 		if err != nil {
 			log.Fatalf("Error loading .env file: %v", err)
 		}
-	} else {
-		sslMode = "require"
+	} else { // TODO: remove, as everything is on localhost without ssl
+		sslMode = "disable"
 	}
 
 	envMap := map[string]string{

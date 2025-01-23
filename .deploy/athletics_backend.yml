@@ -1,0 +1,63 @@
+- name: Set up Golang systemd service
+  hosts: lekkoatletawka
+  become: yes
+
+  vars_files:
+  - files/secrets.yml
+  - files/vars.yml
+  vars:
+    setup_atlas: false
+    update_golang: true
+
+  tasks:
+    - name: Update golang
+      import_tasks: golang.yml
+      when: update_golang | bool
+
+    - name: Download atlasgo.sh script
+      ansible.builtin.get_url:
+        url: "https://atlasgo.sh"
+        dest: "/tmp/atlasgo.sh"
+        mode: '0755'
+      when: setup_atlas | bool
+  
+    - name: Install Atlas
+      ansible.builtin.command: /tmp/atlasgo.sh -y
+      when: setup_atlas | bool
+
+    - name: Ensure required user and group exist
+      ansible.builtin.user:
+        name: "{{ service_name }}"
+        create_home: true 
+        shell: /usr/sbin/nologin
+
+    - name: Ensure working directory exists
+      ansible.builtin.file:
+        path: "{{ service_working_dir }}"
+        state: directory
+        owner: "{{ service_name }}"
+        group: "{{ service_name }}"
+        mode: '0755'
+    
+    - name: Ensure binary directory exists
+      ansible.builtin.file:
+        path: "{{ service_bin_dir }}"
+        state: directory
+        owner: "{{ service_name }}"
+        group: "{{ service_name }}"
+        mode: '0755'
+
+    - name: Create systemd service file
+      ansible.builtin.template:
+        src: files/athletics_backend.j2
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        mode: '0644'
+
+    - name: Reload systemd daemon
+      ansible.builtin.command: systemctl daemon-reload
+
+    - name: Enable and start the service
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        enabled: yes
+        state: started
