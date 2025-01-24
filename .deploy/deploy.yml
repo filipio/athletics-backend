@@ -27,15 +27,14 @@
 
     - name: migrate database
       ansible.builtin.command:
-        cmd: atlas migrate apply --env prod
-      environment:
-        DB_PASSWORD: "{{ db_password }}"
-        DB_USER: "{{ db_user }}"
-        DB_NAME: "{{ db_name }}"
-        DB_HOST: "localhost"
-        DB_PORT: "5432"
+        cmd: "atlas migrate apply -u postgres://{{ db_user }}:{{ db_password }}@localhost:5432/{{ db_name }}?sslmode=disable"
+      register: migrate_output
       args:
         chdir: "{{ source_code_dir }}"
+
+    - name: show migration output
+      ansible.builtin.debug:
+        msg: "{{ migrate_output.stdout }}"
     
     - name: restart service
       ansible.builtin.systemd:
