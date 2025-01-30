@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"database/sql"
-	"log"
+	"log/slog"
 	"os"
 	"sync"
 
@@ -45,7 +45,8 @@ func SetupWorkersClient(ctx context.Context, db *gorm.DB, appWorkers *river.Work
 	workersOnce.Do(func() {
 		dbExecutionPool, err := pgxpool.New(ctx, os.Getenv("DB_URL"))
 		if err != nil {
-			log.Fatal("error creating database pool for river: ", err)
+			slog.Error("error creating database pool for river: ", "error", err)
+			os.Exit(1)
 		}
 		executionClient, err := river.NewClient(riverpgxv5.New(dbExecutionPool), &river.Config{
 			Queues: map[string]river.QueueConfig{
@@ -54,7 +55,8 @@ func SetupWorkersClient(ctx context.Context, db *gorm.DB, appWorkers *river.Work
 			Workers: appWorkers,
 		})
 		if err != nil {
-			log.Fatal("error creating river execution client: ", err)
+			slog.Error("error creating river execution client: ", "error", err)
+			os.Exit(1)
 		}
 
 		gormSqlDb, _ := db.DB()
@@ -62,7 +64,8 @@ func SetupWorkersClient(ctx context.Context, db *gorm.DB, appWorkers *river.Work
 			Workers: appWorkers,
 		})
 		if err != nil {
-			log.Fatal("error creating river insert client: ", err)
+			slog.Error("error creating river insert client: ", "error", err)
+			os.Exit(1)
 		}
 
 		// context with gorm db, so it can be used in workers code

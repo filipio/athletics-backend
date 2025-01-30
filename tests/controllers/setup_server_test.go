@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"testing"
@@ -31,12 +31,14 @@ func TestMain(m *testing.M) {
 
 	go func() {
 		if err := athleticsbackend.Run(ctx, envPath); err != nil {
-			log.Fatalf("failed to start server: %v\n", err)
+			slog.Error("failed to start server", "error", err)
+			os.Exit(1)
 		}
 	}()
 
 	if err := waitForReady(ctx); err != nil {
-		log.Fatalf("failed to wait for server to be ready: %v\n", err)
+		slog.Error("failed to wait for server to be ready", "error", err)
+		os.Exit(1)
 	}
 
 	dbInstance = config.DatabaseConnection()
@@ -70,11 +72,11 @@ func waitForReady(ctx context.Context) error {
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			log.Printf("Error making request: %s\n", err.Error())
+			slog.Info("Error making request", "error", err)
 			continue
 		}
 		if resp.StatusCode == http.StatusOK {
-			log.Println("Endpoint is ready!")
+			slog.Info("Endpoint is ready!")
 			resp.Body.Close()
 			return nil
 		}

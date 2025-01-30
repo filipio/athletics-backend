@@ -18,6 +18,8 @@ Environment="JWT_SIGNING_SECRET={{ jwt_signing_secret }}"
 Environment="ADMIN_PASSWORD={{ admin_password }}"
 Environment="ADMIN_EMAIL={{ admin_email }}"
 Environment="APP_ENV=prod"
+Environment="LOG_PATH={{ service_working_dir }}/logs"
+Environment="DB_URL=postgres://{{ db_user }}:{{ db_password }}@localhost:5432/{{ db_name }}"
 
 Restart=always
 

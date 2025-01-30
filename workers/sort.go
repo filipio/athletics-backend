@@ -2,7 +2,6 @@ package workers
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"time"
 
@@ -29,6 +28,5 @@ func (w *SortWorker) Work(ctx context.Context, job *river.Job[args.SortArgs]) er
 
 	}
 	sort.Strings(job.Args.Strings)
-	fmt.Printf("Sorted strings: %+v\n", job.Args.Strings)
 	return nil
 }

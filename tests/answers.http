@@ -1,6 +1,6 @@
-@base_url = http://localhost:8080
+@base_url = https://lekkoatletawka.pl
 @resource_name = answers
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzU1ODcwMDAsInJvbGVzIjpbInVzZXIiXSwic3ViIjoyfQ.SwOP0beaeCPNg5cP_plMWVEb6nJxPYbBk2rM5sSGYF0
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDAzMzY0MjgsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.YyoNHxaU00Pfwpl9wdyrdhuQljGBqew65uRiFXYod_0
 
 ###
 

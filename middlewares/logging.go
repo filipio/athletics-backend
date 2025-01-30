@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -13,6 +13,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 
 		duration := time.Since(startTime)
-		log.Printf("%s %s %s\n", r.Method, r.RequestURI, duration)
+		slog.Info("Request handled", "method", r.Method, "uri", r.RequestURI, "duration", duration)
 	})
 }

@@ -3,7 +3,7 @@ package athleticsbackend
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -60,25 +60,28 @@ func Run(ctx context.Context, envPath string) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
+	utils.SetupLogger()
+
 	if os.Getenv("APP_ENV") != "prod" {
-		log.Print("loading .env file in local environment")
+		slog.Info("loading .env file in local environment")
+
 		err := godotenv.Load(envPath)
 		if err != nil {
-			log.Fatal("error loading .env file in local environment")
+			slog.Error("error loading .env file in local environment")
 			return err
 		}
 	}
 
 	db := config.DatabaseConnection()
-	log.Print("established connection to database")
+	slog.Info("established connection to database")
 
 	seed(db)
-	log.Print("seeded database")
+	slog.Info("seeded database")
 
 	utils.RegisterValidations(db)
 
 	workersClient := config.SetupWorkersClient(ctx, db, appWorkers())
-	log.Print("started workers client")
+	slog.Info("started workers client")
 
 	port := os.Getenv("PORT")
 	addr := fmt.Sprintf(":%s", port)
@@ -89,9 +92,10 @@ func Run(ctx context.Context, envPath string) error {
 	}
 
 	go func() {
-		log.Printf("listening on %s\n", httpServer.Addr)
+		slog.Info("listening", "address", httpServer.Addr)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			fmt.Fprintf(os.Stderr, "error listening and serving: %s\n", err)
+			slog.Error("error listening and serving", "error", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -111,11 +115,13 @@ func Run(ctx context.Context, envPath string) error {
 		defer cancelHttp()
 
 		if err := workersClient.Shutdown(workersShutdownCtx); err != nil {
-			fmt.Fprintf(os.Stderr, "error shutting down workers client: %s\n", err)
+			slog.Error("error shutting down workers client", "error", err)
+			os.Exit(1)
 		}
 
 		if err := httpServer.Shutdown(httpShutdownCtx); err != nil {
-			fmt.Fprintf(os.Stderr, "error shutting down http server: %s\n", err)
+			slog.Error("error shutting down http server", "error", err)
+			os.Exit(1)
 		}
 
 	}()
