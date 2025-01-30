@@ -1,10 +1,8 @@
 package utils
 
 import (
-	"log"
 	"log/slog"
 	"os"
-	"path/filepath"
 )
 
 func SetupLogger() {
@@ -17,10 +15,6 @@ func SetupLogger() {
 		if logPath == "" {
 			slog.Error("Failed to determine log file path")
 			os.Exit(1)
-		}
-		err := os.MkdirAll(filepath.Dir(logPath), os.ModePerm)
-		if err != nil {
-			log.Fatal("Failed to create logs directory:", err)
 		}
 
 		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)

@@ -11,8 +11,22 @@
       ansible.builtin.file:
         path: "{{ source_code_dir }}"
         state: directory
-      args:
-        force: true
+        owner: "{{ service_name }}"
+        group: "{{ service_name }}"
+
+    - name: configure source code directory as trusted for git
+      ansible.builtin.git_config:
+        name: safe.directory
+        value: "{{ source_code_dir }}"
+        scope: global
+        state: present
+
+    - name: create directory for logs
+      ansible.builtin.file:
+        path: "{{ log_dir }}"
+        state: directory
+        owner: "{{ service_name }}"
+        group: "{{ service_name }}"
 
     - name: fetch source code
       ansible.builtin.git:
