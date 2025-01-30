@@ -30,14 +30,6 @@
         name: "{{ service_name }}"
         create_home: true 
         shell: /usr/sbin/nologin
-
-    - name: Ensure working directory exists
-      ansible.builtin.file:
-        path: "{{ service_working_dir }}"
-        state: directory
-        owner: "{{ service_name }}"
-        group: "{{ service_name }}"
-        mode: '0755'
     
     - name: Ensure binary directory exists
       ansible.builtin.file:

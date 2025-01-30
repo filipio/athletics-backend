@@ -20,6 +20,7 @@ func SetupLogger() {
 		logFilePath := logPath + "/app.log"
 		logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
+			slog.Error("error occured while opening log file", "error", err)
 			panic(err)
 		}
 		defer logFile.Close()
