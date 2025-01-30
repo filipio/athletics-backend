@@ -7,7 +7,7 @@
   - files/vars.yml
   vars:
     setup_atlas: false
-    update_golang: true
+    update_golang: false
 
   tasks:
     - name: Update golang

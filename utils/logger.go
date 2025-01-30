@@ -23,8 +23,6 @@ func SetupLogger() {
 			slog.Error("error occured while opening log file", "error", err)
 			panic(err)
 		}
-		defer logFile.Close()
-
 		slogHandler = slog.NewJSONHandler(logFile, nil)
 	}
 
