@@ -43,6 +43,8 @@ require (
 	gorm.io/driver/sqlserver v1.5.3 // indirect
 )
 
+require github.com/rs/cors v1.11.1
+
 require (
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

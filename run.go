@@ -17,6 +17,7 @@ import (
 	"github.com/filipio/athletics-backend/workers"
 	"github.com/joho/godotenv"
 	"github.com/riverqueue/river"
+	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
 
@@ -99,7 +100,7 @@ func Run(ctx context.Context, envPath string) error {
 		}
 	}()
 
-	// belowe is used for graceful shutdown
+	// below is used for graceful shutdown
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(1)
 
@@ -134,7 +135,7 @@ func newServerHandler(db *gorm.DB, insertClient *config.InsertWorkerClient) http
 	mux := http.NewServeMux()
 	addRoutes(mux, db)
 
-	var handler http.Handler = mux
+	var handler http.Handler = cors.Default().Handler(mux)
 	handler = m.DbMiddleware(handler, db)
 	handler = m.WorkersMiddleware(handler, insertClient)
 	handler = m.OnlyCurrentUserMiddleware(handler)
