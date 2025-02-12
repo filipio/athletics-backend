@@ -32,3 +32,4 @@ test.http
 # others
 .vscode
 app
+.idea

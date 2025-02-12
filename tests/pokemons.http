@@ -1,6 +1,6 @@
 @base_url = http://localhost:8080
 @resource_name = pokemons
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzMzMzEzMjYsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.zjVy6iZn6taW_en-uGAZ2-Hdo86Luf0TjVv8zktvJQI
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDE5Nzk3MDIsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.Ae9Pg5ZX0tyE2MrMp7sGc4Y81WochTgUxxXg0ZPNKjg
 
 ###
 
@@ -15,9 +15,8 @@ Authorization: Bearer {{token}}
 
 {
     "pokemon_name": "Pikachu",
-    "age": 12,
-    "email": "foo.bar@gmail.com",
-    "attack": "Ember"
+    "email": "123",
+    "attack": "foo"
 }
 
 ###

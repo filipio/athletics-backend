@@ -2,22 +2,34 @@
 Backend application for athletics app, written in Golang
 
 ## Setup
-1. download dependencies `go mod download`
+1. download dependencies `go mod tidy`
 2. install `docker` and `docker compose`
 3. create 
    - `.env` file from `.env.sample`
    - `.env.test` file from `.env.test.sample`
+4. install `atlasgo` to execute migrations
+```shell
+curl -sSf https://atlasgo.sh | sh
+```
 
 ## Development
 1. run postgres database  
    `docker compose up db`
-2. run the app (call in project root directory)  
+
+2. execute migrations for dev environment
+```bash
+atlas migrate apply --env dev 
+```
+
+for testing
+3. run the app (call in project root directory)  
    `go run ./cmd`
 
-Alternatively, run the app with the database in docker (this simulates production deployment):  
-`docker compose up`
-
 ## Testing
+Run migrations for test environment
+```bash
+atlas migrate apply --env test
+```
 `go test ./...`
 
 ## App structure

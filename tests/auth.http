@@ -1,4 +1,4 @@
-@base_url = https://lekkoatletawka.pl
+@base_url = http://localhost:8080
 @resource_name = events
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDAzMzY0MjgsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.YyoNHxaU00Pfwpl9wdyrdhuQljGBqew65uRiFXYod_0
 
@@ -24,8 +24,8 @@ POST {{base_url}}/api/v1/login HTTP/1.1
 content-type: application/json
 
 {
-    "email": "Filip.Juza.2000@gmail.com",
-    "password": "Filip313213"
+    "email": "admin@gmail.com",
+    "password": "admin123"
 }
 
 ###

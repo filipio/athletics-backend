@@ -15,7 +15,7 @@ type Question struct {
 	EventID       uint              `json:"event_id" gorm:"not null" validate:"required,id_of=event"`
 	Content       string            `json:"content" gorm:"not null" validate:"required"`
 	CorrectAnswer *AnswerOfQuestion `json:"correct_answer"`
-	Type          string            `json:"type" gorm:"not null" validate:"oneof=athlete country"`
+	Type          string            `json:"type" gorm:"not null" validate:"one_of=athlete country"`
 	Answers       []Answer          `json:"answers,omitempty" gorm:"foreignKey:QuestionID;constraint:OnDelete:CASCADE"`
 	Points        uint              `json:"points" gorm:"not null;default:1" validate:"required,gte=1"`
 }
