@@ -17,19 +17,31 @@ type AnswerOfQuestion struct {
 
 func (*AnswerOfQuestion) typeMapping() map[string]func() any {
 	return map[string]func() any{
-		"athlete": func() any { return &AthleteAnswer{} },
-		"country": func() any { return &AthletesIdsAnswer{} },
+		"athlete":         func() any { return &AthleteAnswer{} },
+		"athletes_three":  func() any { return &AthletesThreeAnswer{} },
+		"country":         func() any { return &CountryAnswer{} },
+		"countries_three": func() any { return &CountriesThreeAnswer{} },
 	}
 }
 
 type AthleteAnswer struct {
-	Value string `json:"value" validate:"required"`
+	AthleteId uint `json:"athlete_id" validate:"required,id_of=athlete"`
 }
 
-type AthletesIdsAnswer struct {
+type AthletesThreeAnswer struct {
 	AthleteIdOne   uint `json:"athlete_id_one" validate:"required,id_of=athlete"`
 	AthleteIdTwo   uint `json:"athlete_id_two" validate:"required,id_of=athlete"`
 	AthleteIdThree uint `json:"athlete_id_three" validate:"required,id_of=athlete"`
+}
+
+type CountryAnswer struct {
+	Country string `json:"country" validate:"required"`
+}
+
+type CountriesThreeAnswer struct {
+	CountryOne   string `json:"country_one" validate:"required"`
+	CountryTwo   string `json:"country_two" validate:"required"`
+	CountryThree string `json:"country_three" validate:"required"`
 }
 
 func (a *AnswerOfQuestion) Validate(questionType string) error {
