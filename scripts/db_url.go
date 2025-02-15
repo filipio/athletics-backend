@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// as atlasgo is incapable of reading .env files directly, this small script was added to make it work
 func main() {
 	envType := flag.String("env", "dev", "type of env: test, dev, prod")
 	flag.Parse()
