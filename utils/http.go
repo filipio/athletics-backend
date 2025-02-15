@@ -81,7 +81,7 @@ func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) erro
 	return nil
 }
 
-func DecodeAndValidate[T DbModel](r *http.Request) (T, error) {
+func DecodeAndValidate[T Validatable](r *http.Request) (T, error) {
 	var record T
 
 	if err := json.NewDecoder(r.Body).Decode(&record); err != nil {

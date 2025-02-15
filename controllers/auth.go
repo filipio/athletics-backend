@@ -12,6 +12,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type LoginPayload struct {
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+func (payload LoginPayload) Validate(r *http.Request) error {
+	return nil
+}
+
 const jwtTokenExpiration = time.Hour * 24 * 30
 
 func Register() utils.HandlerWithError {
@@ -58,7 +67,7 @@ func Register() utils.HandlerWithError {
 func Login() utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			bodyUser, decodeErr := utils.DecodeAndValidate[models.User](r)
+			loginPayload, decodeErr := utils.DecodeAndValidate[LoginPayload](r)
 
 			if decodeErr != nil {
 				return decodeErr
@@ -67,13 +76,13 @@ func Login() utils.HandlerWithError {
 			db := models.Db(r)
 
 			var user models.User
-			db.First(&user, "email = ?", bodyUser.Email)
+			db.First(&user, "email = ?", loginPayload.Email)
 
 			if user.GetID() == 0 {
 				return utils.LoginError{}
 			}
 
-			if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(bodyUser.Password)); err != nil {
+			if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginPayload.Password)); err != nil {
 				return utils.LoginError{}
 			}
 

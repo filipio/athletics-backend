@@ -25,8 +25,6 @@ func main() {
 			fmt.Println("Error loading .env file", err) // println allowed here
 			os.Exit(1)
 		}
-	} else { // TODO: remove, as everything is on localhost without ssl
-		sslMode = "disable"
 	}
 
 	envMap := map[string]string{

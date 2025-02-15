@@ -7,9 +7,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type DbModel interface {
-	GetID() uint
+type Validatable interface {
 	Validate(*http.Request) error
+}
+
+type DbModel interface {
+	Validatable
+	GetID() uint
 	BeforeCreateCtx(context.Context, *gorm.DB) error
 	AfterCreateCtx(context.Context, *gorm.DB) error
 	BeforeUpdateCtx(context.Context, *gorm.DB) error
