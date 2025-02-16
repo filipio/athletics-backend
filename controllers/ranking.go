@@ -8,8 +8,7 @@ import (
 )
 
 type RankingItem struct {
-	ID          uint   `json:"user_id"`
-	Email       string `json:"email"`
+	Username    string `json:"username"`
 	TotalPoints int    `json:"total_points"`
 }
 
@@ -26,8 +25,8 @@ func GetRanking() utils.HandlerWithError {
 					Where("questions.event_id = ?", queryParams.Get("event_id"))
 			}
 
-			query = query.Group("users.id, users.email").
-				Select("users.id, users.email, sum(answers.points) as total_points")
+			query = query.Group("users.id, users.username").
+				Select("users.username, sum(answers.points) as total_points")
 
 			orderBy := "total_points"
 			orderDirection := "desc"
