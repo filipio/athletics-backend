@@ -98,9 +98,10 @@ func Login() utils.HandlerWithError {
 			}
 
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-				"sub":   user.ID,
-				"exp":   time.Now().Add(jwtTokenExpiration).Unix(),
-				"roles": roleNames,
+				"sub":       user.ID,
+				"exp":       time.Now().Add(jwtTokenExpiration).Unix(),
+				"roles":     roleNames,
+				"usernamae": user.Username,
 			})
 
 			tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SIGNING_SECRET")))
