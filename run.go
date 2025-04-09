@@ -139,6 +139,8 @@ func newServerHandler(db *gorm.DB, insertClient *config.InsertWorkerClient) http
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	})
 	var handler http.Handler = c.Handler(mux)
