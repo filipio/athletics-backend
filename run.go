@@ -137,7 +137,11 @@ func newServerHandler(db *gorm.DB, insertClient *config.InsertWorkerClient) http
 	mux := http.NewServeMux()
 	addRoutes(mux, db)
 
-	var handler http.Handler = cors.Default().Handler(mux)
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowCredentials: true,
+	})
+	var handler http.Handler = c.Handler(mux)
 	handler = m.DbMiddleware(handler, db)
 	handler = m.WorkersMiddleware(handler, insertClient)
 	handler = m.OnlyCurrentUserMiddleware(handler)
