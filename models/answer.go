@@ -124,6 +124,10 @@ func (m Answer) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	if queryParams.Has("user_id") {
 		db = db.Where("user_id = ?", queryParams.Get("user_id"))
 	}
+	if queryParams.Has("event_id") {
+		db = db.Joins("JOIN questions ON questions.id = answers.question_id").
+			Where("questions.event_id = ?", queryParams.Get("event_id"))
+	}
 
 	return db
 }
