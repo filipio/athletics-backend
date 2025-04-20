@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/filipio/athletics-backend/utils"
@@ -117,8 +118,9 @@ func (m Answer) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	db = getByIds(db, r)
 
 	queryParams := r.URL.Query()
-	if queryParams.Has("question_id") {
-		db = db.Where("question_id = ?", queryParams.Get("question_id"))
+	if queryParams.Has("question_ids") {
+		questionIds := strings.Split(queryParams.Get("question_ids"), ",")
+		db = db.Where("question_id IN (?)", questionIds)
 	}
 
 	if queryParams.Has("user_id") {
