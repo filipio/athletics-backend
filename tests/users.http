@@ -1,6 +1,6 @@
 @base_url = http://localhost:8080
 @resource_name = users
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzMzMzEzMjYsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MX0.zjVy6iZn6taW_en-uGAZ2-Hdo86Luf0TjVv8zktvJQI
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzA2NTIzNjEsInJvbGVzIjpbImFkbWluIl0sInN1YiI6MSwidXNlcm5hbWUiOiJhZG1pbiJ9.OEYUCEBsMVIhcpKJ19C1otn049x676C8FCsmTvcN9Dc
 
 ###
 
