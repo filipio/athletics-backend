@@ -64,6 +64,7 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.Handle("DELETE /api/v1/users/me/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Delete[models.Answer]())))
 
 	mux.Handle("GET /api/v1/users/me", m.ErrorsMiddleware(m.UserOnly(controllers.Get[models.User]())))
+	mux.Handle("GET /api/v1/users/me/ranking", m.ErrorsMiddleware(m.UserOnly(controllers.GetMyRanking())))
 
 	mux.Handle("GET /api/v1/answers", m.ErrorsMiddleware(m.UserOnly(controllers.GetAll[models.Answer]())))
 	mux.Handle("GET /api/v1/answers/{id}", m.ErrorsMiddleware(m.UserOnly(controllers.Get[models.Answer]())))

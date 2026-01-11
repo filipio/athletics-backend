@@ -30,6 +30,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.23 // indirect
 	github.com/microsoft/go-mssqldb v1.7.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/resend/resend-go/v3 v3.0.0 // indirect
 	github.com/riverqueue/river/riverdriver v0.14.1 // indirect
 	github.com/riverqueue/river/rivershared v0.14.1 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
