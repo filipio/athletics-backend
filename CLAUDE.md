@@ -87,6 +87,51 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Location**: Migrations stored in `migrations/` directory
 - **Approach**: Schema-driven (models → migrations), not migration-driven
 
+### Email Sending
+
+The application uses Resend (https://resend.com) for transactional emails.
+
+#### Setup
+- **Package**: `email/` contains email client and sending functions
+- **Client**: Singleton pattern, initialized on first use
+- **Template**: Email verification template ID hardcoded in `email/templates.go`
+- **Configuration**: `RESEND_API_KEY` environment variable required
+
+#### Email Verification Registration Flow
+
+**Frontend-Backend Integration:**
+
+1. **Request Verification**: User provides email, username, password to `POST /api/v1/auth/register/request-verification`
+   - System validates email not already registered
+   - Checks rate limiting (3 requests per 15 min per email)
+   - Generates long random token (valid 24 hours)
+   - Hashes password and stores in `pending_registrations`
+   - Sends email with clickable link: `https://yourfrontend.com/verify-email?token={{token}}`
+
+2. **User Clicks Email Link**: Redirects to frontend verification page
+   - Frontend extracts token from URL query param
+   - Shows loading state
+
+3. **Frontend Verifies Token**: Calls `POST /api/v1/auth/verify-email`
+   - Backend creates user and returns JWT token (auto-login!)
+   - Frontend stores JWT and redirects to dashboard
+
+**Why this flow?**
+- ✅ Better UX: Loading states, success/error messages, branding
+- ✅ Auto-login: Returns JWT token, no separate login needed
+- ✅ Security: Long random tokens (2^256), POST requests, 24-hour expiry
+- ✅ Frontend control: Analytics, custom flows, graceful error handling
+
+#### Rate Limiting
+- **Request limit**: 3 verification emails per 15 minutes per email
+- **Blocking**: Automatic cooldown periods when limits exceeded
+- **Storage**: `email_verification_rate_limits` table
+- **No verification rate limiting**: Long random tokens prevent brute force
+
+#### Database Tables
+- `pending_registrations`: Temporary storage for unverified registrations (24-hour expiry)
+- `email_verification_rate_limits`: Tracks verification request attempts
+
 ## Code Patterns
 
 ### Adding a New Model

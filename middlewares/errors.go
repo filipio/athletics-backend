@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/filipio/athletics-backend/utils"
@@ -99,6 +100,38 @@ func errorResponse(err error) (httpStatus int, errorResponse utils.ErrorsRespons
 		return http.StatusUnauthorized, utils.ErrorsResponse{
 			ErrorType: "auth_error",
 			Details:   "user_id must be the same as in Bearer token",
+		}
+	}
+
+	if _, ok := err.(utils.EmailAlreadyExistsError); ok {
+		return http.StatusBadRequest, utils.ErrorsResponse{
+			ErrorType: "validation_error",
+			Details:   "email already registered",
+		}
+	}
+
+	if err, ok := err.(utils.EmailVerificationRateLimitError); ok {
+		details := "too many registration attempts, please try again later"
+		if err.BlockedUntil != nil {
+			details = fmt.Sprintf("too many attempts, blocked until %s", *err.BlockedUntil)
+		}
+		return http.StatusTooManyRequests, utils.ErrorsResponse{
+			ErrorType: "rate_limit_error",
+			Details:   details,
+		}
+	}
+
+	if _, ok := err.(utils.InvalidVerificationTokenError); ok {
+		return http.StatusBadRequest, utils.ErrorsResponse{
+			ErrorType: "validation_error",
+			Details:   "invalid or expired verification token",
+		}
+	}
+
+	if err, ok := err.(utils.EmailSendError); ok {
+		return http.StatusInternalServerError, utils.ErrorsResponse{
+			ErrorType: "email_error",
+			Details:   fmt.Sprintf("failed to send email: %v", err.OriginalError),
 		}
 	}
 

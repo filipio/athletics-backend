@@ -56,3 +56,21 @@ type AppValidationError struct {
 	AppError
 	FieldPath string
 }
+
+type EmailAlreadyExistsError struct {
+	AppError
+}
+
+type EmailVerificationRateLimitError struct {
+	AppError
+	BlockedUntil *string
+}
+
+type InvalidVerificationTokenError struct {
+	AppError
+}
+
+type EmailSendError struct {
+	AppError
+	OriginalError error
+}

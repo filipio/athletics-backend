@@ -21,6 +21,7 @@ Environment="ADMIN_USERNAME={{ admin_username }}"
 Environment="APP_ENV=prod"
 Environment="LOG_PATH={{ log_dir }}"
 Environment="DB_URL=postgres://{{ db_user }}:{{ db_password }}@localhost:5432/{{ db_name }}"
+Environment="RESEND_API_KEY={{ resend_api_key }}"
 
 Restart=always
 

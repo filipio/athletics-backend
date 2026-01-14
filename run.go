@@ -38,9 +38,10 @@ func seed(db *gorm.DB) {
 
 	if adminEmail != "" && adminPassword != "" && adminUsername != "" {
 		adminUser := models.User{
-			Email:    adminEmail,
-			Password: adminPassword,
-			Username: adminUsername,
+			Email:         adminEmail,
+			Password:      adminPassword,
+			Username:      adminUsername,
+			EmailVerified: true,
 		}
 
 		db.FirstOrCreate(&adminUser, models.User{Email: adminEmail})

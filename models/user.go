@@ -11,14 +11,19 @@ import (
 
 type User struct {
 	AppModel
-	Username string   `json:"username" validate:"required" gorm:"not null;default:'no_name'"`
-	Email    string   `json:"email" validate:"required,email" gorm:"not null;unique"`
-	Password string   `json:"password" validate:"required,min=6" gorm:"not null"`
-	Roles    []Role   `json:"roles" gorm:"many2many:user_roles;constraint:OnDelete:CASCADE"`
-	Answers  []Answer `json:"answers,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Username            string   `json:"username" validate:"required" gorm:"not null;default:'no_name'"`
+	Email               string   `json:"email" validate:"required,email" gorm:"not null;unique"`
+	Password            string   `json:"password" validate:"required,min=6" gorm:"not null"`
+	Roles               []Role   `json:"roles" gorm:"many2many:user_roles;constraint:OnDelete:CASCADE"`
+	Answers             []Answer `json:"answers,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	SkipPasswordHashing bool     `json:"-" gorm:"-"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
+	if u.SkipPasswordHashing {
+		return nil
+	}
+
 	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(u.Password), 10)
 	if err != nil {
 		return err

@@ -9,7 +9,6 @@ import (
 	"github.com/filipio/athletics-backend/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type LoginPayload struct {
@@ -22,47 +21,6 @@ func (payload LoginPayload) Validate(r *http.Request) error {
 }
 
 const jwtTokenExpiration = time.Hour * 24 * 30
-
-func Register() utils.HandlerWithError {
-	return utils.HandlerWithError(
-		func(w http.ResponseWriter, r *http.Request) error {
-			user, err := utils.DecodeAndValidate[models.User](r)
-
-			if err != nil {
-				return err
-			}
-
-			db := models.Db(r)
-
-			var role models.Role
-
-			if err := db.Transaction(func(tx *gorm.DB) error {
-				if err := tx.Create(&user).Error; err != nil {
-					return err
-				}
-
-				if err := tx.Where("name = ?", utils.UserRole).First(&role).Error; err != nil {
-					return err
-				}
-
-				if err := tx.Model(&user).Association("Roles").Append(&role); err != nil {
-					return err
-				}
-
-				if err := tx.First(&user, user.GetID()).Error; err != nil {
-					return err
-				}
-
-				return nil
-			}); err != nil {
-				return err
-			}
-
-			utils.Encode(w, r, http.StatusOK, utils.AnyMap{})
-
-			return nil
-		})
-}
 
 func Login() utils.HandlerWithError {
 	return utils.HandlerWithError(

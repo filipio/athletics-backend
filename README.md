@@ -12,6 +12,13 @@ Backend application for athletics app, written in Golang
 curl -sSf https://atlasgo.sh | sh
 ```
 
+5. create local databases required for migrations
+```bash
+createdb athletics_backend_atlas
+createdb athletics_backend_test
+```
+(The `athletics_backend_atlas` database is used by Atlas to compute schema changes during `atlas migrate diff`)
+
 ## Development
 1. run postgres database  
    `docker compose up db`

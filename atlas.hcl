@@ -27,7 +27,7 @@ locals {
 env {
   name = atlas.env // must be either: test, dev, prod
   src = data.external_schema.gorm.url
-  dev = "docker://postgres/16/dev?search_path=public"
+  dev = "postgres://localhost:5432/athletics_backend_atlas?search_path=public&sslmode=disable"
   url = "${local.db_url}"
   migration {
     dir = "file://migrations"
