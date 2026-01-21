@@ -22,6 +22,7 @@ func (*AnswerOfQuestion) typeMapping() map[string]func() any {
 		"athletes_three":  func() any { return &AthletesThreeAnswer{} },
 		"country":         func() any { return &CountryAnswer{} },
 		"countries_three": func() any { return &CountriesThreeAnswer{} },
+		"numeric_value":   func() any { return &NumericValueAnswer{} },
 	}
 }
 
@@ -43,6 +44,10 @@ type CountriesThreeAnswer struct {
 	CountryOne   string `json:"country_one" validate:"required"`
 	CountryTwo   string `json:"country_two" validate:"required"`
 	CountryThree string `json:"country_three" validate:"required"`
+}
+
+type NumericValueAnswer struct {
+	Value float64 `json:"value" validate:"required,gte=0"`
 }
 
 func (a *AnswerOfQuestion) Validate(questionType string) error {
