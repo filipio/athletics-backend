@@ -126,7 +126,7 @@ func buildClientContext(r *http.Request, claims jwt.MapClaims, db *gorm.DB) (con
 	userID := claims["sub"]
 
 	var user models.User
-	db.First(&user, userID)
+	db.Preload("Roles").First(&user, userID)
 	if user.ID == 0 {
 		return nil, utils.UserNotFoundError{}
 	}

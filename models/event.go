@@ -13,7 +13,23 @@ type Event struct {
 	Name        string     `json:"name" gorm:"not null" validate:"required"`
 	Description *string    `json:"description"`
 	Deadline    time.Time  `json:"deadline" gorm:"not null" validate:"required"`
+	Status      string     `json:"status" gorm:"not null;default:draft" validate:"omitempty,oneof=draft published"`
 	Questions   []Question `json:"questions,omitempty" gorm:"foreignKey:EventID;constraint:OnDelete:CASCADE"`
+}
+
+func (m Event) isOrganizerOrAdmin(r *http.Request) bool {
+	user, ok := r.Context().Value(utils.UserContextKey).(User)
+	if !ok {
+		return false
+	}
+
+	for _, role := range user.Roles {
+		if role.Name == utils.OrganizerRole || role.Name == utils.AdminRole {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (m Event) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
@@ -22,6 +38,18 @@ func (m Event) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 
 	if queryParams.Get("active") == "true" {
 		db = db.Where("NOW() < deadline")
+	}
+
+	if !m.isOrganizerOrAdmin(r) {
+		db = db.Where("status = ?", "published")
+	}
+
+	return db
+}
+
+func (m Event) GetQuery(db *gorm.DB, r *http.Request) *gorm.DB {
+	if !m.isOrganizerOrAdmin(r) {
+		db = db.Where("status = ?", "published")
 	}
 
 	return db
