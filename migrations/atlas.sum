@@ -1,4 +1,4 @@
-h1:WNgUQ1B8+bAFVGBQHrVed1PcSf9Sc4qDVvjfcnwC6rs=
+h1:AVXepNep6rma6z3N9QPW2drst8NY+2QaXBQ54ZYDcMk=
 20241024132455.sql h1:dQdoI9eiMBp8IumMQ01ofU+ZmxW8ehIGpXJKDdHmvuw=
 20241026102230_text_search_extension.sql h1:lLM65JkxGD96f25IdanCcYT0dsOkl/UoSOjoP9oRjO0=
 20241026102407_athletes_full_name_indexes.sql h1:wOLplMLuflPGvad2/zAvDYN1fo/axMi5FHWyNp6MTnA=
@@ -18,3 +18,4 @@ h1:WNgUQ1B8+bAFVGBQHrVed1PcSf9Sc4qDVvjfcnwC6rs=
 20250215143853.sql h1:pNYqJ6AlMivppyZha1waC+xmqBK4ueWt8IBZe1MJ3fo=
 20260114211848.sql h1:+OpGsaCOkD+1zJjtcN+LpXz7FD8jG836xgDTVxZx18Q=
 20260114215106.sql h1:nKQiz6M1vXZizK00xZgCbZwJbcT0f+YTJ1D8vq5nIy4=
+20260121214800_add_event_status.sql h1:QQkXq1NxONAMO/EaUhvNvHUvaRVk7ksXyNWkSQv2sbU=

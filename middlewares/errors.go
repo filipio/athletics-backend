@@ -34,8 +34,8 @@ func errorResponse(err error) (httpStatus int, errorResponse utils.ErrorsRespons
 	}
 
 	if _, ok := err.(utils.RecordNotFoundError); ok {
-		return http.StatusBadRequest, utils.ErrorsResponse{
-			ErrorType: "bad_request",
+		return http.StatusNotFound, utils.ErrorsResponse{
+			ErrorType: "not_found",
 			Details:   "record not found",
 		}
 	}
