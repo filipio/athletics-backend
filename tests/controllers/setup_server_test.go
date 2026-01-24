@@ -20,6 +20,8 @@ var host string
 var dbInstance *gorm.DB
 var ctx = context.Background()
 var adminToken string
+var adminEmail string
+var adminPassword string
 
 const envPath = "../../.env.test"
 const hostFormula = "http://localhost:%s"
@@ -43,13 +45,17 @@ func TestMain(m *testing.M) {
 
 	dbInstance = config.DatabaseConnection()
 
-	payload := utils.AnyMap{"email": os.Getenv("ADMIN_EMAIL"), "password": os.Getenv("ADMIN_PASSWORD")}
-	_, tokenResponse, err := Post[map[string]string]("/api/v1/login", payload)
+	// Store admin credentials from environment variables for use in tests
+	adminEmail = os.Getenv("ADMIN_EMAIL")
+	adminPassword = os.Getenv("ADMIN_PASSWORD")
+
+	payload := utils.AnyMap{"email": adminEmail, "password": adminPassword}
+	_, tokenResponse, err := Post[map[string]interface{}]("/api/v1/login", payload)
 	if err != nil {
 		panic(err)
 	}
 
-	adminToken = (*tokenResponse)["token"]
+	adminToken = (*tokenResponse)["access_token"].(string)
 
 	code := m.Run()
 	os.Exit(code)
@@ -93,4 +99,10 @@ func waitForReady(ctx context.Context) error {
 			time.Sleep(250 * time.Millisecond)
 		}
 	}
+}
+
+// getAdminCredentials returns the admin user's email and password from environment variables
+// This is useful for tests that need to login as admin
+func getAdminCredentials() (email, password string) {
+	return adminEmail, adminPassword
 }

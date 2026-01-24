@@ -55,9 +55,29 @@ func authMiddleware(next utils.HandlerWithError, requiredRole string) utils.Hand
 			return utils.ActionForbiddenError{}
 		}
 
+		// Validate session if session_id is present in claims
+		sessionID, hasSessionID := claims["session_id"].(string)
+		if hasSessionID && sessionID != "" {
+			db := models.Db(r)
+			var refreshToken models.RefreshToken
+			err := db.Where("session_id = ? AND revoked_at IS NULL AND expires_at > ?",
+				sessionID, time.Now()).First(&refreshToken).Error
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return utils.SessionExpiredError{}
+				}
+				return err
+			}
+		}
+
 		clientContext, err := buildClientContext(r, claims, models.Db(r))
 		if err != nil {
 			return err
+		}
+
+		// Add session_id to context for logout functionality
+		if sessionID != "" {
+			clientContext = context.WithValue(clientContext, utils.SessionIDContextKey, sessionID)
 		}
 
 		return next.ServeHTTP(w, r.WithContext(clientContext))

@@ -135,6 +135,27 @@ func errorResponse(err error) (httpStatus int, errorResponse utils.ErrorsRespons
 		}
 	}
 
+	if _, ok := err.(utils.InvalidRefreshTokenError); ok {
+		return http.StatusUnauthorized, utils.ErrorsResponse{
+			ErrorType: "auth_error",
+			Details:   "invalid or expired refresh token",
+		}
+	}
+
+	if _, ok := err.(utils.RefreshTokenExpiredError); ok {
+		return http.StatusUnauthorized, utils.ErrorsResponse{
+			ErrorType: "auth_error",
+			Details:   "refresh token has expired",
+		}
+	}
+
+	if _, ok := err.(utils.SessionExpiredError); ok {
+		return http.StatusUnauthorized, utils.ErrorsResponse{
+			ErrorType: "auth_error",
+			Details:   "session has expired",
+		}
+	}
+
 	return http.StatusInternalServerError, utils.ErrorsResponse{
 		ErrorType: "internal_server_error",
 		Details:   err.Error(),

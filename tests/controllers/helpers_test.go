@@ -88,3 +88,47 @@ func ToStruct[T any](obj any) T {
 
 	return destinationStruct
 }
+
+func executeHttpWithToken[T any](method string, path string, body any, token string) (*http.Response, *T, error) {
+	url := host + path
+
+	var jsonPayload io.Reader = nil
+	if body != nil {
+		jsonBody, err := json.Marshal(body)
+		if err != nil {
+			return nil, nil, fmt.Errorf("cannot marshal into json: %w", err)
+		}
+		jsonPayload = bytes.NewBuffer(jsonBody)
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		method,
+		url,
+		jsonPayload,
+	)
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to do request: %w", err)
+	}
+
+	var result T
+	err = json.NewDecoder(response.Body).Decode(&result)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return response, &result, nil
+}
+
+func executeLogout(path string, token string) (*http.Response, *map[string]any, error) {
+	return executeHttpWithToken[map[string]any]("POST", path, nil, token)
+}

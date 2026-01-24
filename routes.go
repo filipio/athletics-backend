@@ -32,7 +32,9 @@ func addRoutes(mux *http.ServeMux, db *gorm.DB) {
 
 	mux.Handle("POST /api/v1/auth/register/request-verification", m.ErrorsMiddleware(controllers.RequestVerification()))
 	mux.Handle("POST /api/v1/auth/verify-email", m.ErrorsMiddleware(controllers.VerifyEmail()))
-	mux.Handle("POST /api/v1/login", m.ErrorsMiddleware(controllers.Login()))
+	mux.Handle("POST /api/v1/login", m.ErrorsMiddleware(controllers.Login(db)))
+	mux.Handle("POST /api/v1/auth/refresh", m.ErrorsMiddleware(controllers.RefreshToken()))
+	mux.Handle("POST /api/v1/auth/logout", m.ErrorsMiddleware(m.UserOnly(controllers.Logout())))
 
 	mux.Handle("GET /api/v1/users", m.ErrorsMiddleware(m.AdminOnly(controllers.GetAll[models.User]())))
 	mux.Handle("GET /api/v1/users/{id}", m.ErrorsMiddleware(m.AdminOnly(controllers.Get[models.User]())))

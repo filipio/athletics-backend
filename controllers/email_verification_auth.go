@@ -3,13 +3,11 @@ package controllers
 import (
 	"context"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/filipio/athletics-backend/email"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -125,7 +123,6 @@ func VerifyEmail() utils.HandlerWithError {
 
 			db := models.Db(r)
 
-			// Find pending registration by token
 			var pendingReg models.PendingRegistration
 			db.Where("verification_token = ? AND verified = ?", payload.Token, false).First(&pendingReg)
 
@@ -137,7 +134,6 @@ func VerifyEmail() utils.HandlerWithError {
 				return utils.InvalidVerificationTokenError{}
 			}
 
-			// Create user
 			user := models.User{
 				Email:               pendingReg.Email,
 				Username:            pendingReg.Username,
@@ -160,12 +156,10 @@ func VerifyEmail() utils.HandlerWithError {
 					return err
 				}
 
-				// Delete pending registration
 				if err := tx.Delete(&pendingReg).Error; err != nil {
 					return err
 				}
 
-				// Delete rate limit
 				if err := tx.Where("email = ?", pendingReg.Email).Delete(&models.EmailVerificationRateLimit{}).Error; err != nil {
 					return err
 				}
@@ -177,33 +171,12 @@ func VerifyEmail() utils.HandlerWithError {
 				return err
 			}
 
-			// Generate JWT token
-			var roles []models.Role
-			if err := db.Model(&user).Association("Roles").Find(&roles); err != nil {
-				return err
-			}
-
-			var roleNames []string = make([]string, len(roles))
-			for i, role := range roles {
-				roleNames[i] = role.Name
-			}
-
-			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-				"sub":      user.ID,
-				"exp":      time.Now().Add(jwtTokenExpiration).Unix(),
-				"roles":    roleNames,
-				"username": user.Username,
-			})
-
-			tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SIGNING_SECRET")))
+			tokenPair, err := generateTokenPair(user, db, nil)
 			if err != nil {
 				return err
 			}
 
-			utils.Encode(w, r, http.StatusOK, utils.AnyMap{
-				"token": tokenString,
-				"user":  user.BuildResponse(),
-			})
+			utils.Encode(w, r, http.StatusOK, tokenPair)
 
 			return nil
 		})

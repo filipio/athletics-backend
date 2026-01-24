@@ -74,3 +74,15 @@ type EmailSendError struct {
 	AppError
 	OriginalError error
 }
+
+type InvalidRefreshTokenError struct {
+	AppError
+}
+
+type RefreshTokenExpiredError struct {
+	AppError
+}
+
+type SessionExpiredError struct {
+	AppError
+}
