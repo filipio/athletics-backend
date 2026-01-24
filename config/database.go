@@ -69,6 +69,7 @@ func DatabaseConnection() *gorm.DB {
 			Logger: &SlogLogger{logLevel: logger.Info},
 		})
 		if err != nil {
+			slog.Error("failed to initialize database", "error", err.Error())
 			panic("failed to connect database")
 		}
 		db = dbInstance

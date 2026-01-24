@@ -2,6 +2,8 @@ package workers
 
 import (
 	"context"
+	"encoding/json"
+	"math"
 	"reflect"
 	"time"
 
@@ -38,9 +40,27 @@ func (w *PointsGranterWorker) Work(ctx context.Context, job *river.Job[args.Poin
 		"points_granted_at": time.Now().UTC(),
 	}
 
-	// // iterate over answers
+	// iterate over answers
 	for _, answer := range answers {
-		if reflect.DeepEqual(answer.Content.JSON, correctAnswer.JSON) {
+		isCorrect := false
+
+		if question.Type == "numeric_value" {
+			// Special handling for float comparison with epsilon tolerance
+			var answerContent models.NumericValueAnswer
+			var correctContent models.NumericValueAnswer
+
+			if err := json.Unmarshal(answer.Content.JSON, &answerContent); err == nil {
+				if err := json.Unmarshal(correctAnswer.JSON, &correctContent); err == nil {
+					const epsilon = 0.001
+					isCorrect = math.Abs(answerContent.Value-correctContent.Value) < epsilon
+				}
+			}
+		} else {
+			// Existing exact match comparison for other types
+			isCorrect = reflect.DeepEqual(answer.Content.JSON, correctAnswer.JSON)
+		}
+
+		if isCorrect {
 			updateMap["points"] = question.Points
 		} else {
 			updateMap["points"] = 0
