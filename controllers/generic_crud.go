@@ -1,18 +1,18 @@
 package controllers
 
 import (
-	"context"
 	"net/http"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
 	"gorm.io/gorm"
 )
 
-func GetAll[T utils.DbModel]() utils.HandlerWithError {
+func GetAll[T utils.DbModel](deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			db := models.Db(r)
+			db := deps.DB
 			var instance T
 
 			query := instance.GetAllQuery(db, r)
@@ -46,10 +46,10 @@ func GetAll[T utils.DbModel]() utils.HandlerWithError {
 		})
 }
 
-func Get[T utils.DbModel]() utils.HandlerWithError {
+func Get[T utils.DbModel](deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			db := models.Db(r)
+			db := deps.DB
 			var record T
 
 			query := record.GetQuery(db, r)
@@ -74,26 +74,18 @@ func Get[T utils.DbModel]() utils.HandlerWithError {
 		})
 }
 
-func Create[T utils.DbModel]() utils.HandlerWithError {
+func Create[T utils.DbModel](deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			db := models.Db(r)
-			record, err := utils.DecodeAndValidate[T](r)
+			db := deps.DB
+			record, err := utils.DecodeAndValidate[T](r, db)
 
 			if err != nil {
 				return err
 			}
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
-				if err := record.BeforeCreateCtx(r.Context(), tx); err != nil {
-					return err
-				}
-
 				if err := tx.Create(&record).Error; err != nil {
-					return err
-				}
-
-				if err := record.AfterCreateCtx(r.Context(), tx); err != nil {
 					return err
 				}
 
@@ -113,11 +105,11 @@ func Create[T utils.DbModel]() utils.HandlerWithError {
 		})
 }
 
-func Update[T utils.DbModel]() utils.HandlerWithError {
+func Update[T utils.DbModel](deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			db := models.Db(r)
-			record, err := utils.DecodeAndValidate[T](r)
+			db := deps.DB
+			record, err := utils.DecodeAndValidate[T](r, db)
 
 			if err != nil {
 				return err
@@ -128,22 +120,14 @@ func Update[T utils.DbModel]() utils.HandlerWithError {
 			id := utils.IntPathValue(r, "id")
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
-				if err := record.BeforeUpdateCtx(context.WithValue(r.Context(), utils.RecordIdContextKey, id), tx); err != nil {
-					return err
-				}
-
 				queryResult := query.Updates(&record)
 
 				if queryResult.Error != nil {
-					return err
+					return queryResult.Error
 				}
 
 				if queryResult.RowsAffected == 0 {
 					return utils.RecordNotFoundError{}
-				}
-
-				if err := record.AfterUpdateCtx(context.WithValue(r.Context(), utils.RecordIdContextKey, id), tx); err != nil {
-					return err
 				}
 
 				return nil
@@ -162,20 +146,15 @@ func Update[T utils.DbModel]() utils.HandlerWithError {
 		})
 }
 
-func Delete[T utils.DbModel]() utils.HandlerWithError {
+func Delete[T utils.DbModel](deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			db := models.Db(r)
+			db := deps.DB
 			var record T
 
 			query := record.DeleteQuery(db, r)
-			id := utils.IntPathValue(r, "id")
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
-				if err := record.BeforeDeleteCtx(context.WithValue(r.Context(), utils.RecordIdContextKey, id), tx); err != nil {
-					return err
-				}
-
 				queryResult := query.Delete(&record)
 
 				if queryResult.Error != nil {
@@ -184,10 +163,6 @@ func Delete[T utils.DbModel]() utils.HandlerWithError {
 
 				if queryResult.RowsAffected == 0 {
 					return utils.RecordNotFoundError{}
-				}
-
-				if err := record.AfterDeleteCtx(context.WithValue(r.Context(), utils.RecordIdContextKey, id), tx); err != nil {
-					return err
 				}
 
 				return nil

@@ -8,7 +8,7 @@ import (
 )
 
 type Validatable interface {
-	Validate(*http.Request) error
+	Validate(*gorm.DB) error
 }
 
 type DbModel interface {

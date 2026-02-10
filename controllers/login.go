@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -14,20 +15,19 @@ type LoginPayload struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func (payload LoginPayload) Validate(r *http.Request) error {
+func (payload LoginPayload) Validate(db *gorm.DB) error {
 	return nil
 }
 
-func Login(db *gorm.DB) utils.HandlerWithError {
+func Login(deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			loginPayload, decodeErr := utils.DecodeAndValidate[LoginPayload](r)
+			db := deps.DB
+			loginPayload, decodeErr := utils.DecodeAndValidate[LoginPayload](r, db)
 
 			if decodeErr != nil {
 				return decodeErr
 			}
-
-			db := models.Db(r)
 
 			var user models.User
 			db.First(&user, "email = ?", loginPayload.Email)

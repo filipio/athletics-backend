@@ -7,7 +7,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/filipio/athletics-backend/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
@@ -68,10 +67,8 @@ func SetupWorkersClient(ctx context.Context, db *gorm.DB, appWorkers *river.Work
 			os.Exit(1)
 		}
 
-		// context with gorm db, so it can be used in workers code
-		ctxWithGorm := context.WithValue(ctx, utils.DbContextKey, db)
 		// starting workers goroutines to listen for jobs
-		executionClient.Start(ctxWithGorm)
+		executionClient.Start(ctx)
 
 		insertClient := &InsertWorkerClient{gormRiverClient}
 

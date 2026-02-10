@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/filipio/athletics-backend/utils"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -17,20 +16,6 @@ type User struct {
 	Roles               []Role   `json:"roles" gorm:"many2many:user_roles;constraint:OnDelete:CASCADE"`
 	Answers             []Answer `json:"answers,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 	SkipPasswordHashing bool     `json:"-" gorm:"-"`
-}
-
-func (u *User) BeforeCreate(tx *gorm.DB) error {
-	if u.SkipPasswordHashing {
-		return nil
-	}
-
-	hashedPasswordBytes, err := bcrypt.GenerateFromPassword([]byte(u.Password), 10)
-	if err != nil {
-		return err
-	}
-
-	u.Password = string(hashedPasswordBytes)
-	return nil
 }
 
 func (m User) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {

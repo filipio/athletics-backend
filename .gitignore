@@ -33,3 +33,6 @@ test.http
 .vscode
 app
 .idea
+
+# generated mocks
+mocks/*.go

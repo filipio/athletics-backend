@@ -9,40 +9,46 @@ import (
 	"strings"
 	"time"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
-func AdminOnly(next utils.HandlerWithError) utils.HandlerWithError {
-	return authMiddleware(next, utils.AdminRole)
+type AuthMiddleware struct {
+	deps *config.Dependencies
 }
 
-func UserOnly(next utils.HandlerWithError) utils.HandlerWithError {
-	return authMiddleware(next, utils.UserRole)
+func NewAuthMiddleware(deps *config.Dependencies) *AuthMiddleware {
+	return &AuthMiddleware{deps: deps}
 }
 
-func OrganizerOnly(next utils.HandlerWithError) utils.HandlerWithError {
-	return authMiddleware(next, utils.OrganizerRole)
+func (a *AuthMiddleware) AdminOnly(next utils.HandlerWithError) utils.HandlerWithError {
+	return a.authMiddleware(next, utils.AdminRole)
 }
 
-func authMiddleware(next utils.HandlerWithError, requiredRole string) utils.HandlerWithError {
+func (a *AuthMiddleware) UserOnly(next utils.HandlerWithError) utils.HandlerWithError {
+	return a.authMiddleware(next, utils.UserRole)
+}
+
+func (a *AuthMiddleware) OrganizerOnly(next utils.HandlerWithError) utils.HandlerWithError {
+	return a.authMiddleware(next, utils.OrganizerRole)
+}
+
+func (a *AuthMiddleware) authMiddleware(next utils.HandlerWithError, requiredRole string) utils.HandlerWithError {
 	return utils.HandlerWithError(func(w http.ResponseWriter, r *http.Request) error {
 		tokenString, extractionError := extractToken(r)
-
 		if extractionError != nil {
 			return extractionError
 		}
 
 		token, parsingError := parseToken(tokenString)
-
 		if parsingError != nil {
 			return utils.JwtTokenParsingError{AppError: utils.AppError{Message: parsingError.Error()}}
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
-
 		if !ok || !token.Valid {
 			return utils.InvalidJwtClaimsError{}
 		}
@@ -58,7 +64,7 @@ func authMiddleware(next utils.HandlerWithError, requiredRole string) utils.Hand
 		// Validate session if session_id is present in claims
 		sessionID, hasSessionID := claims["session_id"].(string)
 		if hasSessionID && sessionID != "" {
-			db := models.Db(r)
+			db := a.deps.DB
 			var refreshToken models.RefreshToken
 			err := db.Where("session_id = ? AND revoked_at IS NULL AND expires_at > ?",
 				sessionID, time.Now()).First(&refreshToken).Error
@@ -70,7 +76,7 @@ func authMiddleware(next utils.HandlerWithError, requiredRole string) utils.Hand
 			}
 		}
 
-		clientContext, err := buildClientContext(r, claims, models.Db(r))
+		clientContext, err := a.buildClientContext(r, claims)
 		if err != nil {
 			return err
 		}
@@ -82,6 +88,18 @@ func authMiddleware(next utils.HandlerWithError, requiredRole string) utils.Hand
 
 		return next.ServeHTTP(w, r.WithContext(clientContext))
 	})
+}
+
+func (a *AuthMiddleware) buildClientContext(r *http.Request, claims jwt.MapClaims) (context.Context, error) {
+	userID := claims["sub"]
+
+	var user models.User
+	a.deps.DB.Preload("Roles").First(&user, userID)
+	if user.ID == 0 {
+		return nil, utils.UserNotFoundError{}
+	}
+
+	return context.WithValue(r.Context(), utils.UserContextKey, user), nil
 }
 
 func extractToken(r *http.Request) (string, error) {
@@ -109,7 +127,11 @@ func parseToken(tokenString string) (*jwt.Token, error) {
 }
 
 func requiredRoleFound(claims jwt.MapClaims, requiredRole string) bool {
-	userRolesInterface := claims["roles"].([]interface{})
+	userRolesInterface, ok := claims["roles"].([]interface{})
+	if !ok || userRolesInterface == nil {
+		return false
+	}
+
 	userRoles := make([]string, len(userRolesInterface))
 	for i, v := range userRolesInterface {
 		userRoles[i] = v.(string)
@@ -120,16 +142,4 @@ func requiredRoleFound(claims jwt.MapClaims, requiredRole string) bool {
 	}
 
 	return slices.Contains(userRoles, requiredRole)
-}
-
-func buildClientContext(r *http.Request, claims jwt.MapClaims, db *gorm.DB) (context.Context, error) {
-	userID := claims["sub"]
-
-	var user models.User
-	db.Preload("Roles").First(&user, userID)
-	if user.ID == 0 {
-		return nil, utils.UserNotFoundError{}
-	}
-
-	return context.WithValue(r.Context(), utils.UserContextKey, user), nil
 }

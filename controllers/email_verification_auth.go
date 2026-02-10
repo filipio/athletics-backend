@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"context"
 	"net/http"
 	"time"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/email"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
@@ -18,7 +18,7 @@ type RequestVerificationPayload struct {
 	Password string `json:"password" validate:"required,min=6"`
 }
 
-func (payload RequestVerificationPayload) Validate(r *http.Request) error {
+func (payload RequestVerificationPayload) Validate(db *gorm.DB) error {
 	return nil
 }
 
@@ -26,19 +26,18 @@ type VerifyEmailPayload struct {
 	Token string `json:"token" validate:"required"`
 }
 
-func (payload VerifyEmailPayload) Validate(r *http.Request) error {
+func (payload VerifyEmailPayload) Validate(db *gorm.DB) error {
 	return nil
 }
 
-func RequestVerification() utils.HandlerWithError {
+func RequestVerification(deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			payload, err := utils.DecodeAndValidate[RequestVerificationPayload](r)
+			db := deps.DB
+			payload, err := utils.DecodeAndValidate[RequestVerificationPayload](r, db)
 			if err != nil {
 				return err
 			}
-
-			db := models.Db(r)
 
 			var existingUser models.User
 			db.Where("email = ?", payload.Email).First(&existingUser)
@@ -93,8 +92,7 @@ func RequestVerification() utils.HandlerWithError {
 				return err
 			}
 
-			ctx := context.Background()
-			emailErr := email.SendVerificationEmail(ctx, email.VerificationEmailParams{
+			emailErr := deps.EmailSender.SendVerificationEmail(r.Context(), email.VerificationEmailParams{
 				To:                payload.Email,
 				VerificationToken: pendingReg.VerificationToken,
 			})
@@ -113,15 +111,14 @@ func RequestVerification() utils.HandlerWithError {
 		})
 }
 
-func VerifyEmail() utils.HandlerWithError {
+func VerifyEmail(deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			payload, err := utils.DecodeAndValidate[VerifyEmailPayload](r)
+			db := deps.DB
+			payload, err := utils.DecodeAndValidate[VerifyEmailPayload](r, db)
 			if err != nil {
 				return err
 			}
-
-			db := models.Db(r)
 
 			var pendingReg models.PendingRegistration
 			db.Where("verification_token = ? AND verified = ?", payload.Token, false).First(&pendingReg)

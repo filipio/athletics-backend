@@ -22,7 +22,7 @@ func (m AppModel) GetID() uint {
 }
 
 // used for custom validation logic, which can't be defined in the struct tags
-func (m AppModel) Validate(r *http.Request) error {
+func (m AppModel) Validate(db *gorm.DB) error {
 	return nil
 }
 
@@ -131,9 +131,4 @@ func getByIds(db *gorm.DB, r *http.Request) *gorm.DB {
 	} else {
 		return db
 	}
-}
-
-// fetches the database connection from the request context
-func Db(r *http.Request) *gorm.DB {
-	return r.Context().Value(utils.DbContextKey).(*gorm.DB)
 }

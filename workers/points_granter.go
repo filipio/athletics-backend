@@ -7,19 +7,23 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/models"
-	"github.com/filipio/athletics-backend/utils"
 	args "github.com/filipio/athletics-backend/workerargs"
 	"github.com/riverqueue/river"
-	"gorm.io/gorm"
 )
 
 type PointsGranterWorker struct {
 	river.WorkerDefaults[args.PointsGranterArgs]
+	deps *config.Dependencies
+}
+
+func NewPointsGranterWorker(deps *config.Dependencies) *PointsGranterWorker {
+	return &PointsGranterWorker{deps: deps}
 }
 
 func (w *PointsGranterWorker) Work(ctx context.Context, job *river.Job[args.PointsGranterArgs]) error {
-	db := ctx.Value(utils.DbContextKey).(*gorm.DB)
+	db := w.deps.DB
 	questionId := job.Args.QuestionID
 
 	var question models.Question

@@ -1,12 +1,9 @@
 package models
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/utils"
-	"github.com/filipio/athletics-backend/workerargs"
 	"gorm.io/gorm"
 )
 
@@ -20,14 +17,7 @@ type Question struct {
 	Points        uint              `json:"points" gorm:"not null;default:1" validate:"required,gte=1"`
 }
 
-func (m Question) Validate(r *http.Request) error {
-	if r.Method == http.MethodPost && m.CorrectAnswer != nil {
-		return utils.AppValidationError{
-			FieldPath: "correct_answer",
-			AppError:  utils.AppError{Message: "must not be present when creating a question"},
-		}
-	}
-
+func (m Question) Validate(db *gorm.DB) error {
 	if m.CorrectAnswer != nil {
 		if err := m.CorrectAnswer.Validate(m.Type); err != nil {
 			return utils.AppValidationError{
@@ -37,7 +27,6 @@ func (m Question) Validate(r *http.Request) error {
 		}
 	}
 
-	db := Db(r)
 	var event Event
 	db.First(&event, m.EventID)
 
@@ -53,16 +42,6 @@ func (m Question) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 	}
 
 	return db
-}
-
-func (m Question) BeforeUpdateCtx(ctx context.Context, tx *gorm.DB) error {
-	workersClient := ctx.Value(utils.WorkersContextKey).(*config.InsertWorkerClient)
-	questionID := ctx.Value(utils.RecordIdContextKey).(int)
-
-	if _, err := workersClient.InsertTx(tx, workerargs.PointsGranterArgs{QuestionID: uint(questionID)}); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (m Question) BuildResponse() any {

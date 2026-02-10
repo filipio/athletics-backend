@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
 )
@@ -19,10 +20,10 @@ type MyRankingResponse struct {
 	TotalPoints       int  `json:"total_points"`
 }
 
-func GetRanking() utils.HandlerWithError {
+func GetRanking(deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			query := models.Db(r).
+			query := deps.DB.
 				Model(&models.Answer{}).
 				Joins("JOIN users ON answers.user_id = users.id")
 
@@ -54,7 +55,7 @@ func GetRanking() utils.HandlerWithError {
 		})
 }
 
-func GetMyRanking() utils.HandlerWithError {
+func GetMyRanking(deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			currentUser := r.Context().Value(utils.UserContextKey).(models.User)
@@ -64,7 +65,7 @@ func GetMyRanking() utils.HandlerWithError {
 				TotalPoints int
 			}
 
-			userPointsQuery := models.Db(r).
+			userPointsQuery := deps.DB.
 				Model(&models.Answer{}).
 				Select("COALESCE(SUM(answers.points), 0) as total_points").
 				Where("user_id = ?", currentUser.ID)
@@ -83,7 +84,7 @@ func GetMyRanking() utils.HandlerWithError {
 			if userPointsResult.TotalPoints > 0 {
 				var usersWithHigherPoints int64
 
-				countSubquery := models.Db(r).
+				countSubquery := deps.DB.
 					Model(&models.Answer{}).
 					Select("user_id")
 
@@ -107,7 +108,7 @@ func GetMyRanking() utils.HandlerWithError {
 
 			var totalPlaces int64
 
-			totalPlacesQuery := models.Db(r).
+			totalPlacesQuery := deps.DB.
 				Model(&models.Answer{}).
 				Distinct("user_id")
 
@@ -125,7 +126,7 @@ func GetMyRanking() utils.HandlerWithError {
 				TotalPoints int
 			}
 
-			totalPointsQuery := models.Db(r).
+			totalPointsQuery := deps.DB.
 				Model(&models.Question{}).
 				Select("COALESCE(SUM(questions.points), 0) as total_points")
 

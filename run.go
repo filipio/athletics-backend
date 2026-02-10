@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/filipio/athletics-backend/config"
+	"github.com/filipio/athletics-backend/email"
 	m "github.com/filipio/athletics-backend/middlewares"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
@@ -49,12 +50,12 @@ func seed(db *gorm.DB) {
 }
 
 // the only function to be used in order to add new workers
-func appWorkers() *river.Workers {
+func appWorkers(deps *config.Dependencies) *river.Workers {
 	riverWorkers := river.NewWorkers()
 
-	river.AddWorker(riverWorkers, &workers.SortWorker{})
-	river.AddWorker(riverWorkers, &workers.PokemonWorker{})
-	river.AddWorker(riverWorkers, &workers.PointsGranterWorker{})
+	river.AddWorker(riverWorkers, workers.NewSortWorker(deps))
+	river.AddWorker(riverWorkers, workers.NewPokemonWorker(deps))
+	river.AddWorker(riverWorkers, workers.NewPointsGranterWorker(deps))
 
 	return riverWorkers
 }
@@ -83,12 +84,22 @@ func Run(ctx context.Context, envPath string) error {
 
 	utils.RegisterValidations(db)
 
-	workersClient := config.SetupWorkersClient(ctx, db, appWorkers())
+	// Initialize email sender
+	emailSender := email.GetDefaultEmailSender()
+
+	// Create dependencies container (workers set to nil temporarily)
+	deps := config.NewDependencies(db, nil, emailSender)
+
+	// Create workers with dependencies
+	workersClient := config.SetupWorkersClient(ctx, db, appWorkers(deps))
 	slog.Info("started workers client")
+
+	// Update Workers in deps
+	deps.Workers = workersClient.InsertClient
 
 	port := os.Getenv("PORT")
 	addr := fmt.Sprintf(":%s", port)
-	handler := newServerHandler(db, workersClient.InsertClient)
+	handler := newServerHandler(deps)
 	httpServer := &http.Server{
 		Addr:    addr,
 		Handler: handler,
@@ -133,9 +144,9 @@ func Run(ctx context.Context, envPath string) error {
 	return nil
 }
 
-func newServerHandler(db *gorm.DB, insertClient *config.InsertWorkerClient) http.Handler {
+func newServerHandler(deps *config.Dependencies) http.Handler {
 	mux := http.NewServeMux()
-	addRoutes(mux, db)
+	addRoutes(mux, deps)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
@@ -144,8 +155,6 @@ func newServerHandler(db *gorm.DB, insertClient *config.InsertWorkerClient) http
 		AllowCredentials: true,
 	})
 	var handler http.Handler = c.Handler(mux)
-	handler = m.DbMiddleware(handler, db)
-	handler = m.WorkersMiddleware(handler, insertClient)
 	handler = m.OnlyCurrentUserMiddleware(handler)
 	handler = m.LoggingMiddleware(handler)
 

@@ -4,14 +4,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
 )
 
-func Logout() utils.HandlerWithError {
+func Logout(deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			db := models.Db(r)
+			db := deps.DB
 
 			sessionID, ok := r.Context().Value(utils.SessionIDContextKey).(string)
 			if !ok || sessionID == "" {

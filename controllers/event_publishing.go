@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
 )
 
-func PublishEvent() utils.HandlerWithError {
+func PublishEvent(deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(func(w http.ResponseWriter, r *http.Request) error {
 		eventID, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
@@ -18,7 +19,7 @@ func PublishEvent() utils.HandlerWithError {
 			}
 		}
 
-		db := models.Db(r)
+		db := deps.DB
 
 		var event models.Event
 		if err := db.First(&event, eventID).Error; err != nil {
@@ -40,7 +41,7 @@ func PublishEvent() utils.HandlerWithError {
 	})
 }
 
-func UnpublishEvent() utils.HandlerWithError {
+func UnpublishEvent(deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(func(w http.ResponseWriter, r *http.Request) error {
 		eventID, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
@@ -50,7 +51,7 @@ func UnpublishEvent() utils.HandlerWithError {
 			}
 		}
 
-		db := models.Db(r)
+		db := deps.DB
 
 		var event models.Event
 		if err := db.First(&event, eventID).Error; err != nil {

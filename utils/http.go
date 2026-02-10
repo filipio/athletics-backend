@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"gorm.io/gorm"
 )
 
 type HandlerWithError func(http.ResponseWriter, *http.Request) error
@@ -81,7 +83,7 @@ func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) erro
 	return nil
 }
 
-func DecodeAndValidate[T Validatable](r *http.Request) (T, error) {
+func DecodeAndValidate[T Validatable](r *http.Request, db *gorm.DB) (T, error) {
 	var record T
 
 	if err := json.NewDecoder(r.Body).Decode(&record); err != nil {
@@ -101,7 +103,7 @@ func DecodeAndValidate[T Validatable](r *http.Request) (T, error) {
 		return record, err
 	}
 
-	if err := record.Validate(r); err != nil {
+	if err := record.Validate(db); err != nil {
 		return record, err
 	}
 

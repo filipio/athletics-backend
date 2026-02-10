@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/filipio/athletics-backend/config"
 	"github.com/filipio/athletics-backend/models"
 	"github.com/filipio/athletics-backend/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -14,19 +15,18 @@ type RefreshTokenPayload struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
 
-func (payload RefreshTokenPayload) Validate(r *http.Request) error {
+func (payload RefreshTokenPayload) Validate(db *gorm.DB) error {
 	return nil
 }
 
-func RefreshToken() utils.HandlerWithError {
+func RefreshToken(deps *config.Dependencies) utils.HandlerWithError {
 	return utils.HandlerWithError(
 		func(w http.ResponseWriter, r *http.Request) error {
-			payload, err := utils.DecodeAndValidate[RefreshTokenPayload](r)
+			db := deps.DB
+			payload, err := utils.DecodeAndValidate[RefreshTokenPayload](r, db)
 			if err != nil {
 				return err
 			}
-
-			db := models.Db(r)
 
 			var refreshTokens []models.RefreshToken
 			db.Where("expires_at > ? AND revoked_at IS NULL", time.Now()).Find(&refreshTokens)

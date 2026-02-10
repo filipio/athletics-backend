@@ -77,15 +77,7 @@ type Answer struct {
 	PointsGrantedAt *time.Time       `json:"points_granted_at"`
 }
 
-func (m Answer) Validate(r *http.Request) error {
-	currentUser := r.Context().Value(utils.UserContextKey).(User)
-
-	if m.UserID != currentUser.ID {
-		return utils.InvalidUserError{}
-	}
-
-	db := Db(r)
-
+func (m Answer) Validate(db *gorm.DB) error {
 	var question Question
 	db.First(&question, m.QuestionID)
 
@@ -93,22 +85,6 @@ func (m Answer) Validate(r *http.Request) error {
 		return utils.AppValidationError{
 			FieldPath: "content",
 			AppError:  utils.AppError{Message: err.Error()},
-		}
-	}
-
-	var otherAnswer Answer
-	db.Where("user_id = ? AND question_id = ?", m.UserID, m.QuestionID).First(&otherAnswer)
-	if otherAnswer.ID != 0 {
-		if r.Method == http.MethodPost {
-			return utils.AppValidationError{
-				FieldPath: "question_id",
-				AppError:  utils.AppError{Message: "already answered by current user"},
-			}
-		} else if r.Method == http.MethodPut && otherAnswer.PointsGrantedAt != nil {
-			return utils.AppValidationError{
-				FieldPath: "question_id",
-				AppError:  utils.AppError{Message: "points already granted"},
-			}
 		}
 	}
 

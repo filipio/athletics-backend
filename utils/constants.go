@@ -11,11 +11,8 @@ const OnlyCurrentUserPath = "/users/me"
 type ContextKey uint
 
 const UserContextKey = ContextKey(0)
-const DbContextKey = ContextKey(1)
-const WorkersContextKey = ContextKey(2)
-const RecordIdContextKey = ContextKey(3)
-const OnlyCurrentUserContextKey = ContextKey(4)
-const SessionIDContextKey = ContextKey(5)
+const OnlyCurrentUserContextKey = ContextKey(1)
+const SessionIDContextKey = ContextKey(2)
 
 const DefaultPageSize = 20
 const DefaultPageNumber = 1
