@@ -26,7 +26,7 @@ COPY ./ ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-s -w' \
     -installsuffix 'static' \
-    -o /app_main ./cmd
+    -o /app_main ./cmd/server
 
 # Final stage: the running container.
 FROM scratch AS final

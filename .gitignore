@@ -31,8 +31,7 @@ test.http
 
 # others
 .vscode
-app
 .idea
 
 # generated mocks
-mocks/*.go
+test/mocks/*.go
