@@ -35,7 +35,7 @@
 
     - name: build app
       ansible.builtin.command:
-        cmd: "go build -o {{ service_bin_file }} ./cmd"
+        cmd: "go build -o {{ service_bin_file }} ./cmd/server"
       args:
         chdir: "{{ source_code_dir }}"
 
