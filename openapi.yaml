@@ -183,6 +183,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OrderByParam'
+        - $ref: '#/components/parameters/OrderDirParam'
       responses:
         '200':
           description: List of users
@@ -331,6 +333,12 @@ paths:
       description: Get current authenticated user's ranking position and points
       security:
         - BearerAuth: []
+      parameters:
+        - name: event_id
+          in: query
+          schema:
+            type: integer
+          description: Filter ranking by event ID
       responses:
         '200':
           description: User ranking information
@@ -352,6 +360,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OrderByParam'
+        - $ref: '#/components/parameters/OrderDirParam'
+        - $ref: '#/components/parameters/IdsParam'
         - name: search
           in: query
           schema:
@@ -420,6 +431,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OrderByParam'
+        - $ref: '#/components/parameters/OrderDirParam'
+        - $ref: '#/components/parameters/IdsParam'
       responses:
         '200':
           description: List of disciplines
@@ -467,6 +481,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OrderByParam'
+        - $ref: '#/components/parameters/OrderDirParam'
+        - $ref: '#/components/parameters/IdsParam'
         - name: active
           in: query
           schema:
@@ -657,6 +674,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OrderByParam'
+        - $ref: '#/components/parameters/OrderDirParam'
+        - $ref: '#/components/parameters/IdsParam'
         - name: event_id
           in: query
           schema:
@@ -791,11 +811,19 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OrderByParam'
+        - $ref: '#/components/parameters/OrderDirParam'
+        - $ref: '#/components/parameters/IdsParam'
         - name: question_ids
           in: query
           schema:
             type: string
           description: Filter by question IDs (comma-separated)
+        - name: event_id
+          in: query
+          schema:
+            type: integer
+          description: Filter by event ID
       responses:
         '200':
           description: List of user answers
@@ -919,6 +947,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OrderByParam'
+        - $ref: '#/components/parameters/OrderDirParam'
+        - $ref: '#/components/parameters/IdsParam'
         - name: question_ids
           in: query
           schema:
@@ -929,6 +960,11 @@ paths:
           schema:
             type: integer
           description: Filter by event ID
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+          description: Filter by user ID
       responses:
         '200':
           description: List of answers
@@ -976,6 +1012,11 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/LimitParam'
+        - name: event_id
+          in: query
+          schema:
+            type: integer
+          description: Filter ranking by event ID
       responses:
         '200':
           description: Global ranking
@@ -995,19 +1036,40 @@ components:
 
   parameters:
     PageParam:
-      name: page
+      name: page_no
       in: query
       schema:
         type: integer
         default: 1
       description: Page number (1-indexed)
     LimitParam:
-      name: limit
+      name: per_page
       in: query
       schema:
         type: integer
         default: 20
       description: Items per page
+    OrderByParam:
+      name: order_by
+      in: query
+      schema:
+        type: string
+        default: id
+      description: Field to order results by
+    OrderDirParam:
+      name: order_dir
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
+      description: Sort direction
+    IdsParam:
+      name: ids
+      in: query
+      schema:
+        type: string
+      description: Filter by IDs (comma-separated)
 
   responses:
     Unauthorized:
@@ -1138,6 +1200,17 @@ components:
         password:
           type: string
           minLength: 6
+        roles:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+                enum: [admin, user, organizer]
+          description: Roles to assign to the user
 
     UpdateUserPayload:
       type: object
@@ -1258,6 +1331,10 @@ components:
         deadline:
           type: string
           format: date-time
+        status:
+          type: string
+          enum: [draft, published]
+          default: draft
 
     UpdateEventPayload:
       type: object
