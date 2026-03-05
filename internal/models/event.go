@@ -52,7 +52,7 @@ func (m Event) GetQuery(db *gorm.DB, r *http.Request) *gorm.DB {
 		db = db.Where("status = ?", "published")
 	}
 
-	return db
+	return m.AppModel.GetQuery(db, r)
 }
 
 func (m Event) BuildResponse() any {
