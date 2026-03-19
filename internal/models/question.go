@@ -27,10 +27,7 @@ func (m Question) Validate(db *gorm.DB) error {
 		}
 	}
 
-	var event Event
-	db.First(&event, m.EventID)
-
-	return event.IsPresent()
+	return nil
 }
 
 func (m Question) GetAllQuery(db *gorm.DB, r *http.Request) *gorm.DB {
